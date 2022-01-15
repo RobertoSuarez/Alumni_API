@@ -13,7 +13,7 @@ func main() {
 
 	app := fiber.New()
 
-	app.Static("/", "./dist")
+	app.Static("/*", "./dist")
 
 	log.Println("listen to :" + viper.GetString("port"))
 	app.Listen(":" + viper.GetString("port"))
