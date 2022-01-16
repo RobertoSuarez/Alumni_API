@@ -4,6 +4,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/RobertoSuarez/apialumni/config"
+	"github.com/RobertoSuarez/apialumni/controllers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
 )
@@ -14,6 +16,11 @@ func main() {
 
 	app := fiber.New()
 
+	api := app.Group("/api/v1")
+
+	config.Use(api.Group("/auth"), controllers.NewControllerAuth())
+
+	// Frontend
 	app.Static("/", "./dist", fiber.Static{
 		Compress:      true,
 		ByteRange:     true,
