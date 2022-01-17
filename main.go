@@ -7,6 +7,8 @@ import (
 	"github.com/RobertoSuarez/apialumni/config"
 	"github.com/RobertoSuarez/apialumni/controllers"
 	"github.com/RobertoSuarez/apialumni/database"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
 )
@@ -19,6 +21,7 @@ func main() {
 
 	app := fiber.New()
 
+	app.Use(cors.New())
 	api := app.Group("/api/v1")
 
 	config.Use(api.Group("/auth"), controllers.NewControllerAuth())
