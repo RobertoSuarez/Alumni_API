@@ -5,12 +5,7 @@ type Login struct {
 	Password string `json:"password"`
 }
 
-type PerfilUser struct {
-	Email string `json:"email"`
-	Name  string `json:"name"`
-}
-
 type RespuestaLogin struct {
-	Token  string     `json:"token"`
-	Perfil PerfilUser `json:"perfil"`
+	Token   string `json:"token"`
+	Usuario `json:"usuario"`
 }

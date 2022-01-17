@@ -6,6 +6,7 @@ import (
 
 	"github.com/RobertoSuarez/apialumni/config"
 	"github.com/RobertoSuarez/apialumni/controllers"
+	"github.com/RobertoSuarez/apialumni/database"
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
 )
@@ -14,11 +15,14 @@ func main() {
 	viper.AutomaticEnv()
 	viper.SetDefault("port", "3000")
 
+	database.ConnectDB()
+
 	app := fiber.New()
 
 	api := app.Group("/api/v1")
 
 	config.Use(api.Group("/auth"), controllers.NewControllerAuth())
+	config.Use(api.Group("/users"), controllers.NewControllerUsuario())
 
 	// Frontend
 	app.Static("/", "./dist", fiber.Static{

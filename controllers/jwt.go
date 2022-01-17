@@ -13,12 +13,12 @@ import (
 
 var Miclave = []byte("alumniuteq")
 
-func GenerarJWT(l models.Login) (string, error) {
+func GenerarJWT(u models.Usuario) (string, error) {
 
 	payload := jwt.MapClaims{
-		"username": l.Username,
-		"name":     l.Username,
-		"exp":      time.Now().Add(time.Hour * 24).Unix(),
+		"email":       u.Email,
+		"tipoUsuario": u.TipoUsuario,
+		"exp":         time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, payload)
