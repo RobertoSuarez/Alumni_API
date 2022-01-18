@@ -1,6 +1,8 @@
 package database
 
 import (
+	"fmt"
+
 	"github.com/RobertoSuarez/apialumni/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -21,6 +23,21 @@ func ConnectDB() {
 
 	// Migraciones
 	db.AutoMigrate(&models.Usuario{})
+	db.AutoMigrate(&models.TipoUsuario{})
+	db.AutoMigrate(&models.Admin{})
+	db.AutoMigrate(&models.Alumni{})
+
+	// tipos de usuarios
+	tipos := []models.TipoUsuario{}
+	result := db.Find(&tipos)
+	if result.Error != nil {
+		fmt.Println(result.Error)
+	}
+	if len(tipos) == 0 {
+		Database.Create(&models.TipoUsuario{Tipo: "admin"})
+		Database.Create(&models.TipoUsuario{Tipo: "alumni"})
+	}
+
 	// db.Create(&models.Usuario{
 	// 	Email:    "electrosonix12@gmail.com",
 	// 	Password: "123456",
