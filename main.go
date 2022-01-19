@@ -26,6 +26,7 @@ func main() {
 
 	config.Use(api.Group("/auth"), controllers.NewControllerAuth())
 	config.Use(api.Group("/users"), controllers.NewControllerUsuario())
+	config.Use(api.Group("/ofertas"), controllers.NewControllerOfertaLaboral())
 
 	// Frontend
 	app.Static("/", "./dist", fiber.Static{

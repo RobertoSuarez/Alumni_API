@@ -11,7 +11,7 @@ type Usuario struct {
 	Nacimiento           string      `json:"nacimiento"`
 	Whatsapp             string      `json:"whatsapp"`
 	TipoUsuarioID        uint        `json:"tipoUsuarioID"`
-	TipoUsuario          TipoUsuario `json:"tipoUsuario"`
+	TipoUsuario          TipoUsuario `json:"tipoUsuario" gorm:"foreignKey:TipoUsuarioID"`
 
 	// agregar los tipos de usuarios
 	AdminID uint   `json:"-"`
@@ -24,12 +24,6 @@ type Usuario struct {
 type TipoUsuario struct {
 	ID   uint   `json:"id" gorm:"primary_key"`
 	Tipo string `json:"tipo"`
-}
-
-type PerfilCompleto struct {
-	Usuario Usuario `json:"usuario"`
-	Admin   Admin   `json:"admin,omitempty"`
-	Alumni  Alumni  `json:"alumni,omitempty"`
 }
 
 type Estado struct {

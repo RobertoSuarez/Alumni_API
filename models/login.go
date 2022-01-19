@@ -1,11 +1,11 @@
 package models
 
 type Login struct {
-	Username string `json:"username"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
 type RespuestaLogin struct {
-	Token   string `json:"token"`
-	Usuario `json:"usuario"`
+	Token    string `json:"token"`
+	*Usuario `json:"usuario"`
 }

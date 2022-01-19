@@ -13,11 +13,11 @@ import (
 
 var Miclave = []byte("alumniuteq")
 
-func GenerarJWT(u models.Usuario) (string, error) {
+func GenerarJWT(u *models.Usuario) (string, error) {
 
 	payload := jwt.MapClaims{
 		"email":       u.Email,
-		"tipoUsuario": u.TipoUsuario,
+		"tipoUsuario": u.TipoUsuario.Tipo,
 		"exp":         time.Now().Add(time.Hour * 24).Unix(),
 	}
 

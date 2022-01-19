@@ -32,17 +32,18 @@ func (c *ControllerAuth) ConfigPath(router fiber.Router) {
 
 func (auth *ControllerAuth) LoginHandler(c *fiber.Ctx) error {
 	var login models.Login
-	var usuario models.Usuario
 
 	err := c.BodyParser(&login)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al convertir los datos"})
 	}
 
-	result := database.Database.Where("email = ? AND password = ?", login.Username, login.Password).First(&usuario)
+	//result := database.Database.Where("email = ? AND password = ?", login.Username, login.Password).First(&usuario)
 
-	if result.Error != nil {
-		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "El usuario o contraseña esta incorrecto"})
+	usuario, err := database.LoginUsuario(login.Email, login.Password)
+
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: err.Error()})
 	}
 
 	token, err := GenerarJWT(usuario)
@@ -55,6 +56,8 @@ func (auth *ControllerAuth) LoginHandler(c *fiber.Ctx) error {
 		Token:   token,
 		Usuario: usuario,
 	}
+
+	ClearTiposUsuarios(usuario)
 
 	return c.Status(http.StatusOK).JSON(&respuestaLogin)
 }
