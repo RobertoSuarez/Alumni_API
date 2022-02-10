@@ -1,5 +1,7 @@
 package models
 
+import "errors"
+
 type Usuario struct {
 	ID                   uint        `json:"id" gorm:"primary_key"`
 	IdentificacionTipo   string      `json:"identificacionTipo"`
@@ -28,4 +30,16 @@ type TipoUsuario struct {
 
 type Estado struct {
 	Usando bool
+}
+
+type ListTipoUsuarios []TipoUsuario
+
+func (listTipos *ListTipoUsuarios) GetID(tipo string) (uint, error) {
+	for _, v := range *listTipos {
+		if v.Tipo == tipo {
+			return v.ID, nil
+		}
+	}
+
+	return 0, errors.New("No existe ese tipo de usuario")
 }

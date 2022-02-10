@@ -54,7 +54,7 @@ func ClearTiposUsuarios(usuario *models.Usuario) {
 }
 
 func (cuser *ControllerUsuario) CrearUsuarioHandler(c *fiber.Ctx) error {
-	tipos := []models.TipoUsuario{}
+	tipos := models.ListTipoUsuarios{}
 	usuario := models.Usuario{}
 
 	err := c.BodyParser(&usuario)
@@ -62,31 +62,52 @@ func (cuser *ControllerUsuario) CrearUsuarioHandler(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudieron convertir los datos"})
 	}
 
-	database.Database.Find(&tipos)
-	//fmt.Println(tipos)
-	tipo, err := convertirID_TipoUsuario(tipos, usuario.TipoUsuarioID)
-	if err != nil {
-		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "El tipo de usuario que enviastes no existe"})
-	}
-	switch tipo {
-	case "admin":
-		usuario.Admin.Estado.Usando = true
-		usuario.Alumni = &models.Alumni{
-			Estado:  models.Estado{Usando: false},
-			Carrera: "--",
-		}
-	case "alumni":
-		usuario.Alumni.Estado.Usando = true
-		usuario.Admin = &models.Admin{
-			Estado:           models.Estado{Usando: false},
-			PromoSeguimiento: "--",
-		}
-	default:
-		fmt.Println("No esta tomando ningun caso")
+	// Verificamos si ya existe un usuario registrado con el email.
+	user := models.Usuario{}
+	result := database.Database.Where("email = ?", usuario.Email).First(&user)
+	if result.RowsAffected > 0 {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "El email ya existe"})
 	}
 
+	// verificar las estructura de alumni admin
+	fmt.Println("Objeto usuario completo: ", usuario)
+	if usuario.Admin == nil {
+		usuario.Admin = new(models.Admin).SetNil()
+	}
+	if usuario.Alumni == nil {
+		usuario.Alumni = new(models.Alumni).SetNil()
+	}
+
+	fmt.Println("Objeto usuario completo con objetos en nil: ", usuario)
+
+	database.Database.Find(&tipos)
+	fmt.Println(tipos)
+	fmt.Println(tipos.GetID(usuario.TipoUsuario.Tipo))
+	// //fmt.Println(tipos)
+	// tipo, err := convertirID_TipoUsuario(tipos, usuario.TipoUsuarioID)
+	// if err != nil {
+	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "El tipo de usuario que enviastes no existe"})
+	// }
+
+	// revisamos que tipos de usuario se va a registrar
+	fmt.Println(usuario.TipoUsuario)
+	switch usuario.TipoUsuario.Tipo {
+	case "admin":
+
+		usuario.Admin.Estado.Usando = true
+		usuario.Alumni.SetNil()
+	case "alumni":
+		usuario.Alumni.Estado.Usando = true
+		usuario.Admin.SetNil()
+	default:
+		fmt.Println("No esta tomando ningun caso")
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "El tipo de usuario no existe"})
+	}
+
+	usuario.TipoUsuario.ID, _ = tipos.GetID(usuario.TipoUsuario.Tipo) // Establecemos el id del tipo de usuario.
+
 	// creamos el usuario
-	result := database.Database.Create(&usuario)
+	result = database.Database.Create(&usuario)
 	if result.Error != nil {
 		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al registrar el usuario"})
 	}

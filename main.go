@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"time"
 
 	"github.com/RobertoSuarez/apialumni/config"
@@ -10,8 +9,13 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
+
+func init() {
+	logrus.Trace("API REST Alumni")
+}
 
 func main() {
 	viper.AutomaticEnv()
@@ -44,6 +48,6 @@ func main() {
 		MaxAge:        3600,
 	})
 
-	log.Println("listen to :" + viper.GetString("port"))
+	logrus.Info("listen to :" + viper.GetString("port"))
 	app.Listen(":" + viper.GetString("port"))
 }
