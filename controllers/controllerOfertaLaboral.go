@@ -25,7 +25,7 @@ func (cofertas *ControllerOfertaLaboral) ConfigPath(router fiber.Router) {
 func (cofetas *ControllerOfertaLaboral) ObtenerOfetasLaborales(c *fiber.Ctx) error {
 	ofertas := []*models.OfertaLaboral{}
 
-	result := database.Database.Preload("Usuario.TipoUsuario").Find(&ofertas)
+	result := database.Database.Preload("Usuario").Find(&ofertas)
 	if result.Error != nil {
 		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error en la db"})
 	}
@@ -47,7 +47,7 @@ func (ofertas *ControllerOfertaLaboral) CrearOfertaLaboral(c *fiber.Ctx) error {
 		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo registrar la oferta laboral"})
 	}
 
-	database.Database.Where("id = ?", oferta.ID).Preload("Usuario").First(&oferta)
+	//database.Database.Where("id = ?", oferta.ID).First(&oferta)
 
 	return c.Status(http.StatusOK).JSON(oferta)
 

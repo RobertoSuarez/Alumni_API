@@ -27,6 +27,7 @@ func ConnectDB() {
 	db.AutoMigrate(&models.Admin{})
 	db.AutoMigrate(&models.Alumni{})
 	db.AutoMigrate(&models.OfertaLaboral{})
+	db.AutoMigrate(&models.Educacion{})
 
 	// tipos de usuarios
 	tipos := []models.TipoUsuario{}

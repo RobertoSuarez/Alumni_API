@@ -3,24 +3,32 @@ package models
 import "errors"
 
 type Usuario struct {
-	ID                   uint        `json:"id" gorm:"primary_key"`
-	IdentificacionTipo   string      `json:"identificacionTipo"`
-	NumeroIdentificacion string      `json:"numeroIdentificacion"`
-	Nombres              string      `json:"nombres"`
-	Apellidos            string      `json:"apellidos"`
-	Email                string      `json:"email"`
-	Password             string      `json:"password,omitempty"`
-	Nacimiento           string      `json:"nacimiento"`
-	Whatsapp             string      `json:"whatsapp"`
-	TipoUsuarioID        uint        `json:"tipoUsuarioID"`
-	TipoUsuario          TipoUsuario `json:"tipoUsuario" gorm:"foreignKey:TipoUsuarioID"`
+	ID                   uint   `json:"id" gorm:"primary_key"`
+	IdentificacionTipo   string `json:"identificacionTipo"`
+	NumeroIdentificacion string `json:"numeroIdentificacion"`
+	Nombres              string `json:"nombres"`
+	Apellidos            string `json:"apellidos"`
+	Email                string `json:"email"`
+	Password             string `json:"password,omitempty"`
+	Nacimiento           string `json:"nacimiento"`
+	Whatsapp             string `json:"whatsapp"`
+	// TipoUsuarioID        uint        `json:"tipoUsuarioID"`
+	// TipoUsuario          TipoUsuario `json:"tipoUsuario" gorm:"foreignKey:TipoUsuarioID"`
 
-	// agregar los tipos de usuarios
-	AdminID uint   `json:"-"`
-	Admin   *Admin `json:"admin,omitempty" gorm:"foreignKey:AdminID"`
+	Administrador bool `json:"administrador"`
 
-	AlumniID uint    `json:"-"`
-	Alumni   *Alumni `json:"alumni,omitempty" gorm:"foreignKey:AlumniID"`
+	// // agregar los tipos de usuarios
+	// AdminID uint   `json:"-"`
+	// Admin   *Admin `json:"admin,omitempty" gorm:"foreignKey:AdminID"`
+
+	// AlumniID uint    `json:"-"`
+	// Alumni   *Alumni `json:"alumni,omitempty" gorm:"foreignKey:AlumniID"`
+
+	// datos de gorm
+
+	OfertasLaborales []OfertaLaboral `json:"ofertaLaboral,omitempty" gorm:"foreignKey:UsuarioID"`
+
+	Educacion []Educacion `json:"educacion,omitempty" gorm:"foreignKey:UsuarioID"`
 }
 
 type TipoUsuario struct {

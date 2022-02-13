@@ -12,10 +12,7 @@ func LoginUsuario(email, password string) (*models.Usuario, error) {
 
 	// Busca en la base de datos
 	result := Database.
-		Where("email = ? AND password = ?", email, password).
-		Preload("Admin").
-		Preload("Alumni").
-		Preload("TipoUsuario").First(&usuario)
+		Where("email = ? AND password = ?", email, password).First(&usuario)
 
 	// controlamos el error
 	if result.Error != nil {

@@ -21,37 +21,51 @@ func (cuser *ControllerUsuario) ConfigPath(router fiber.Router) {
 	router.Get("/tipos", cuser.GetTiposUsuario)
 	router.Get("/", cuser.GetUsuarioHandler)
 	router.Post("/", cuser.CrearUsuarioHandler)
+
 }
 
 // Retorna el usuario que se autentica con el token
 func (cuser *ControllerUsuario) GetUsuarioHandler(c *fiber.Ctx) error {
 	usuarios := []*models.Usuario{}
-	database.Database.Preload("Admin").Preload("Alumni").Preload("TipoUsuario").Find(&usuarios)
+	database.Database.Select(
+		[]string{
+			"ID",
+			"IdentificacionTipo",
+			"NumeroIdentificacion",
+			"Nombres",
+			"Apellidos",
+			"Email",
+			//"Password",
+			"Nacimiento",
+			"Whatsapp",
+			"Administrador",
+		}).Find(&usuarios)
+	//database.Database.Preload("Admin").Preload("Alumni").Preload("TipoUsuario").Find(&usuarios)
 
-	for _, usuario := range usuarios {
-		// if usuario.TipoUsuario.Tipo == "admin" {
-		// 	usuario.Alumni = nil
-		// }
+	// for _, usuario := range usuarios {
+	// 	// if usuario.TipoUsuario.Tipo == "admin" {
+	// 	// 	usuario.Alumni = nil
+	// 	// }
 
-		// if usuario.TipoUsuario.Tipo == "alumni" {
-		// 	usuario.Admin = nil
-		// }
-		ClearTiposUsuarios(usuario)
-	}
+	// 	// if usuario.TipoUsuario.Tipo == "alumni" {
+	// 	// 	usuario.Admin = nil
+	// 	// }
+	// 	ClearTiposUsuarios(usuario)
+	// }
 
 	return c.Status(http.StatusOK).JSON(usuarios)
 }
 
 // ClearTiposUsuarios establece el valor nil a los tipos de usuarios que no se define el usuario
-func ClearTiposUsuarios(usuario *models.Usuario) {
-	if usuario.TipoUsuario.Tipo == "admin" {
-		usuario.Alumni = nil
-	}
+// func ClearTiposUsuarios(usuario *models.Usuario) {
+// 	if usuario.TipoUsuario.Tipo == "admin" {
+// 		usuario.Alumni = nil
+// 	}
 
-	if usuario.TipoUsuario.Tipo == "alumni" {
-		usuario.Admin = nil
-	}
-}
+// 	if usuario.TipoUsuario.Tipo == "alumni" {
+// 		usuario.Admin = nil
+// 	}
+// }
 
 func (cuser *ControllerUsuario) CrearUsuarioHandler(c *fiber.Ctx) error {
 	tipos := models.ListTipoUsuarios{}
@@ -70,19 +84,19 @@ func (cuser *ControllerUsuario) CrearUsuarioHandler(c *fiber.Ctx) error {
 	}
 
 	// verificar las estructura de alumni admin
-	fmt.Println("Objeto usuario completo: ", usuario)
-	if usuario.Admin == nil {
-		usuario.Admin = new(models.Admin).SetNil()
-	}
-	if usuario.Alumni == nil {
-		usuario.Alumni = new(models.Alumni).SetNil()
-	}
+	// fmt.Println("Objeto usuario completo: ", usuario)
+	// if usuario.Admin == nil {
+	// 	usuario.Admin = new(models.Admin).SetNil()
+	// }
+	// if usuario.Alumni == nil {
+	// 	usuario.Alumni = new(models.Alumni).SetNil()
+	// }
 
 	fmt.Println("Objeto usuario completo con objetos en nil: ", usuario)
 
 	database.Database.Find(&tipos)
 	fmt.Println(tipos)
-	fmt.Println(tipos.GetID(usuario.TipoUsuario.Tipo))
+	//fmt.Println(tipos.GetID(usuario.TipoUsuario.Tipo))
 	// //fmt.Println(tipos)
 	// tipo, err := convertirID_TipoUsuario(tipos, usuario.TipoUsuarioID)
 	// if err != nil {
@@ -90,21 +104,21 @@ func (cuser *ControllerUsuario) CrearUsuarioHandler(c *fiber.Ctx) error {
 	// }
 
 	// revisamos que tipos de usuario se va a registrar
-	fmt.Println(usuario.TipoUsuario)
-	switch usuario.TipoUsuario.Tipo {
-	case "admin":
+	// fmt.Println(usuario.TipoUsuario)
+	// switch usuario.TipoUsuario.Tipo {
+	// case "admin":
 
-		usuario.Admin.Estado.Usando = true
-		usuario.Alumni.SetNil()
-	case "alumni":
-		usuario.Alumni.Estado.Usando = true
-		usuario.Admin.SetNil()
-	default:
-		fmt.Println("No esta tomando ningun caso")
-		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "El tipo de usuario no existe"})
-	}
+	// 	usuario.Admin.Estado.Usando = true
+	// 	usuario.Alumni.SetNil()
+	// case "alumni":
+	// 	usuario.Alumni.Estado.Usando = true
+	// 	usuario.Admin.SetNil()
+	// default:
+	// 	fmt.Println("No esta tomando ningun caso")
+	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "El tipo de usuario no existe"})
+	// }
 
-	usuario.TipoUsuario.ID, _ = tipos.GetID(usuario.TipoUsuario.Tipo) // Establecemos el id del tipo de usuario.
+	// usuario.TipoUsuario.ID, _ = tipos.GetID(usuario.TipoUsuario.Tipo) // Establecemos el id del tipo de usuario.
 
 	// creamos el usuario
 	result = database.Database.Create(&usuario)

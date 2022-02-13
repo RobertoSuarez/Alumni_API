@@ -57,7 +57,7 @@ func (auth *ControllerAuth) LoginHandler(c *fiber.Ctx) error {
 		Usuario: usuario,
 	}
 
-	ClearTiposUsuarios(usuario)
+	//ClearTiposUsuarios(usuario)
 
 	return c.Status(http.StatusOK).JSON(&respuestaLogin)
 }
