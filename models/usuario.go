@@ -2,6 +2,23 @@ package models
 
 import "errors"
 
+var UsuarioCamposDB = []string{
+	"ID",
+	"IdentificacionTipo",
+	"NumeroIdentificacion",
+	"Nombres",
+	"Apellidos",
+	"Email",
+	//"Password",
+	"Nacimiento",
+	"Whatsapp",
+	"RoleCuenta",
+	"EmailConfirmado",
+	"IsStaff",
+	"StaffRole",
+	"RoleCuenta",
+}
+
 type Usuario struct {
 	ID                   uint   `json:"id" gorm:"primary_key"`
 	IdentificacionTipo   string `json:"identificacionTipo"`
@@ -15,7 +32,12 @@ type Usuario struct {
 	// TipoUsuarioID        uint        `json:"tipoUsuarioID"`
 	// TipoUsuario          TipoUsuario `json:"tipoUsuario" gorm:"foreignKey:TipoUsuarioID"`
 
-	Administrador bool `json:"administrador"`
+	EmailConfirmado bool `json:"emailConfirmado,omitempty"`
+
+	IsStaff   bool   `json:"isStaff"`   // si es del staff
+	StaffRole string `json:"staffRole"` // Administrador, moderador u otra cosa
+
+	RoleCuenta string `json:"roleCuenta"` // si es alumno, alumni o usuarionormal
 
 	// // agregar los tipos de usuarios
 	// AdminID uint   `json:"-"`
@@ -28,7 +50,7 @@ type Usuario struct {
 
 	OfertasLaborales []OfertaLaboral `json:"ofertaLaboral,omitempty" gorm:"foreignKey:UsuarioID"`
 
-	Educacion []Educacion `json:"educacion,omitempty" gorm:"foreignKey:UsuarioID"`
+	Educacion []Educacion `json:"educacion,omitempty" gorm:"foreignKey:UsuarioID"` // este va hacer el historial academico
 }
 
 type TipoUsuario struct {
@@ -49,5 +71,5 @@ func (listTipos *ListTipoUsuarios) GetID(tipo string) (uint, error) {
 		}
 	}
 
-	return 0, errors.New("No existe ese tipo de usuario")
+	return 0, errors.New("no existe ese tipo de usuario")
 }
