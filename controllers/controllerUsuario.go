@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/RobertoSuarez/apialumni/database"
@@ -18,13 +19,14 @@ func NewControllerUsuario() *ControllerUsuario {
 func (cuser *ControllerUsuario) ConfigPath(router fiber.Router) {
 
 	router.Get("/tipos", cuser.GetTiposUsuario)
-	router.Get("/", cuser.GetUsuarioHandler)
+	router.Get("/", cuser.GetUsuariosHandler)
+	router.Get("/:iduser", cuser.GetUsuarioByID)
 	router.Post("/", cuser.CrearUsuarioHandler)
 
 }
 
 // Retorna el usuario que se autentica con el token
-func (cuser *ControllerUsuario) GetUsuarioHandler(c *fiber.Ctx) error {
+func (cuser *ControllerUsuario) GetUsuariosHandler(c *fiber.Ctx) error {
 	usuarios := []*models.Usuario{}
 	database.Database.Select(models.UsuarioCamposDB).Find(&usuarios)
 	//database.Database.Preload("Admin").Preload("Alumni").Preload("TipoUsuario").Find(&usuarios)
@@ -32,16 +34,21 @@ func (cuser *ControllerUsuario) GetUsuarioHandler(c *fiber.Ctx) error {
 	return c.Status(http.StatusOK).JSON(usuarios)
 }
 
-// ClearTiposUsuarios establece el valor nil a los tipos de usuarios que no se define el usuario
-// func ClearTiposUsuarios(usuario *models.Usuario) {
-// 	if usuario.TipoUsuario.Tipo == "admin" {
-// 		usuario.Alumni = nil
-// 	}
+// Recuper de la base de datos, el usuario que se le pasa por id.
+func (cuser *ControllerUsuario) GetUsuarioByID(c *fiber.Ctx) error {
+	idusuario := c.Params("iduser")
 
-// 	if usuario.TipoUsuario.Tipo == "alumni" {
-// 		usuario.Admin = nil
-// 	}
-// }
+	usuario := models.Usuario{}
+	result := database.Database.Where("ID = ?", idusuario).Select(models.UsuarioCamposDB).Find(&usuario)
+	if result.Error != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al consultar el usuario"})
+	}
+
+	fmt.Println("Usuario recuperado de la base de datos: ", usuario)
+
+	return c.Status(http.StatusOK).JSON(usuario)
+
+}
 
 func (cuser *ControllerUsuario) CrearUsuarioHandler(c *fiber.Ctx) error {
 
