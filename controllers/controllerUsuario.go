@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"path/filepath"
+	"strings"
 
 	"github.com/RobertoSuarez/apialumni/database"
 	"github.com/RobertoSuarez/apialumni/models"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 type ControllerUsuario struct{}
@@ -18,11 +21,28 @@ func NewControllerUsuario() *ControllerUsuario {
 
 func (cuser *ControllerUsuario) ConfigPath(router fiber.Router) {
 
-	router.Get("/tipos", cuser.GetTiposUsuario)
-	router.Get("/", cuser.GetUsuariosHandler)
-	router.Get("/:iduser", cuser.GetUsuarioByID)
 	router.Post("/", cuser.CrearUsuarioHandler)
 
+	// end point para subir imagen del usuario
+	router.Post("/avatar", ValidarJWT, cuser.subirAvatar)
+
+	//router.Static("/avatar", "./imgs")
+	router.Get("/avatar/:filename", cuser.GetAvatarUsuario)
+
+	router.Get("/", cuser.GetUsuariosHandler)
+	router.Get("/tipos", cuser.GetTiposUsuario)
+	router.Get("/:iduser", cuser.GetUsuarioByID)
+
+}
+
+// Envia el avatar al cliente
+func (cuser *ControllerUsuario) GetAvatarUsuario(c *fiber.Ctx) error {
+	filename := c.Params("filename")
+	err := c.SendFile("./imgs/" + filename)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No existe ese archivo"})
+	}
+	return c.SendStatus(http.StatusOK)
 }
 
 // Retorna el usuario que se autentica con el token
@@ -74,6 +94,35 @@ func (cuser *ControllerUsuario) CrearUsuarioHandler(c *fiber.Ctx) error {
 	result = database.Database.Create(&usuario)
 	if result.Error != nil {
 		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al registrar el usuario"})
+	}
+
+	return c.SendStatus(http.StatusOK)
+}
+
+// endpoint para subir avatar
+func (cuser *ControllerUsuario) subirAvatar(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(*models.Claim)
+
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo procesar esta imagen"})
+	}
+
+	// Construimos un nuevo nombre para el archivo que sea unico
+	uuid := strings.Replace(uuid.NewString(), "-", "", -1)
+	ext := filepath.Ext(file.Filename)
+	fileAvatarName := uuid + ext
+	fmt.Println(fileAvatarName)
+
+	// Guardamos el archivo y lo registramos en la base de datos.
+	err = c.SaveFile(file, fmt.Sprintf("./imgs/%s", fileAvatarName))
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo guardar la imagen"})
+	}
+
+	result := database.Database.Model(&models.Usuario{ID: claims.IdUser}).Update("URLAvatar", fileAvatarName)
+	if result.Error != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al actualizar el nombre de la imagen"})
 	}
 
 	return c.SendStatus(http.StatusOK)

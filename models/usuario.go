@@ -12,6 +12,7 @@ var UsuarioCamposDB = []string{
 	//"Password",
 	"Nacimiento",
 	"Whatsapp",
+	"URLAvatar",
 	"RoleCuenta",
 	"EmailConfirmado",
 	"IsStaff",
@@ -29,6 +30,7 @@ type Usuario struct {
 	Password             string `json:"password,omitempty"`
 	Nacimiento           string `json:"nacimiento"`
 	Whatsapp             string `json:"whatsapp"`
+	URLAvatar            string `json:"urlAvatar"`
 	// TipoUsuarioID        uint        `json:"tipoUsuarioID"`
 	// TipoUsuario          TipoUsuario `json:"tipoUsuario" gorm:"foreignKey:TipoUsuarioID"`
 
