@@ -1,9 +1,14 @@
 package models
 
+import "time"
+
 type OfertaLaboral struct {
 	ID        uint     `json:"id" gorm:"primary_key"`
 	UsuarioID uint     `json:"usuarioID"` // foreignKey
 	Usuario   *Usuario `json:"usuario,omitempty"`
+
+	Fecha   time.Time `json:"fecha"`
+	Empresa string    `json:"empresa"`
 
 	Titulo                   string `json:"titulo"`
 	Descripcion              string `json:"descripcion"`
@@ -11,6 +16,7 @@ type OfertaLaboral struct {
 	Puesto                   string `json:"puesto"`
 	TipoEmplo                string `json:"tipoEmpleo"` //Modalidad de trabajo
 	Area                     string `json:"area"`       // Categoria
+	Subarea                  string `json:"subarea"`
 	Sueldo                   string `json:"sueldo"`
 	TiempoExperiencia        string `json:"tiempoExperiencia"` // Los años de experiencia
 	Jornada                  string `json:"jornada"`
