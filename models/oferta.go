@@ -8,7 +8,7 @@ type OfertaLaboral struct {
 	Usuario   *Usuario `json:"usuario,omitempty"`
 
 	Fecha   time.Time `json:"fecha"`
-	Empresa string    `json:"empresa"`
+	Empresa string    `json:"empresa"` // TODO: sdfjk
 
 	Titulo                   string `json:"titulo"`
 	Descripcion              string `json:"descripcion"`

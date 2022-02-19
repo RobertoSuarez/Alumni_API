@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/RobertoSuarez/apialumni/models"
+	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -11,10 +12,9 @@ import (
 var Database *gorm.DB
 
 func ConnectDB() {
-	//dsn := "host=ec2-3-232-22-121.compute-1.amazonaws.com user=pocvdhmygcmcmp password=cbb38b84ecb8a348a6e99eca0864599e0c4410de56ca55a4bf94fb25e6226597 dbname=dbov41pluh9o22 port=5432 sslmode=disable"
-	dsn := "postgres://pocvdhmygcmcmp:cbb38b84ecb8a348a6e99eca0864599e0c4410de56ca55a4bf94fb25e6226597@ec2-3-232-22-121.compute-1.amazonaws.com:5432/dbov41pluh9o22"
+	fmt.Println("url postgresql: ", viper.GetString("ALUMNI_DB_PG"))
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(viper.GetString("ALUMNI_DB_PG")), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
