@@ -35,3 +35,4 @@ imgs/*.png
 
 # viables de entorno
 env.sh
+.env
