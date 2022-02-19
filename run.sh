@@ -1,4 +1,4 @@
 #!/bin/bash
-source env.sh
+source ./env.sh
 
 go run main.go

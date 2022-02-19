@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/RobertoSuarez/apialumni/awss3"
 	"github.com/RobertoSuarez/apialumni/database"
 	"github.com/RobertoSuarez/apialumni/models"
 	"github.com/gofiber/fiber/v2"
@@ -25,6 +26,7 @@ func (cuser *ControllerUsuario) ConfigPath(router fiber.Router) {
 
 	// end point para subir imagen del usuario
 	router.Post("/avatar", ValidarJWT, cuser.subirAvatar)
+	router.Post("/avataraws", ValidarJWT, cuser.subirAvatarAWS)
 
 	//router.Static("/avatar", "./imgs")
 	router.Get("/avatar/:filename", cuser.GetAvatarUsuario)
@@ -119,6 +121,38 @@ func (cuser *ControllerUsuario) subirAvatar(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo guardar la imagen"})
 	}
+
+	result := database.Database.Model(&models.Usuario{ID: claims.IdUser}).Update("URLAvatar", fileAvatarName)
+	if result.Error != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al actualizar el nombre de la imagen"})
+	}
+
+	return c.SendStatus(http.StatusOK)
+}
+
+// endpoint para subir avatar en el s3 de amazon
+func (cuser *ControllerUsuario) subirAvatarAWS(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(*models.Claim)
+
+	file, err := c.FormFile("avatar")
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo procesar esta imagen"})
+	}
+
+	// Construimos un nuevo nombre para el archivo que sea unico
+	uuid := strings.Replace(uuid.NewString(), "-", "", -1)
+	ext := filepath.Ext(file.Filename)
+	fileAvatarName := uuid + ext
+	fmt.Println(fileAvatarName)
+
+	// Guardamos el archivo y lo registramos en la base de datos.
+	// err = c.SaveFile(file, fmt.Sprintf("./imgs/%s", fileAvatarName))
+	// if err != nil {
+	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo guardar la imagen"})
+	// }
+
+	// guardar en aws
+	awss3.GuardarImagen("/fullimages/", fileAvatarName, file)
 
 	result := database.Database.Model(&models.Usuario{ID: claims.IdUser}).Update("URLAvatar", fileAvatarName)
 	if result.Error != nil {
