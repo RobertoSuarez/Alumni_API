@@ -75,3 +75,18 @@ func GuardarImagen(basepath, filename string, data *multipart.FileHeader) {
 	fmt.Println(awsutil.Prettify(resp))
 
 }
+
+// basepath debe terminar en /
+func GetImage(basepath, filename string) (*s3.GetObjectOutput, error) {
+	resp, err := sessionS3.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(basepath + filename),
+	})
+
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return resp, nil
+}

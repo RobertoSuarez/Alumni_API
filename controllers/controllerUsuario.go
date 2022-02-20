@@ -30,6 +30,7 @@ func (cuser *ControllerUsuario) ConfigPath(router fiber.Router) {
 
 	//router.Static("/avatar", "./imgs")
 	router.Get("/avatar/:filename", cuser.GetAvatarUsuario)
+	router.Get("/avataraws/:filename", cuser.GetAvatarUsuarioAWS)
 
 	router.Get("/", cuser.GetUsuariosHandler)
 	router.Get("/tipos", cuser.GetTiposUsuario)
@@ -44,6 +45,22 @@ func (cuser *ControllerUsuario) GetAvatarUsuario(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No existe ese archivo"})
 	}
+	return c.SendStatus(http.StatusOK)
+}
+
+// GetAvatarUsuario with aws bucket
+func (cuser *ControllerUsuario) GetAvatarUsuarioAWS(c *fiber.Ctx) error {
+	filename := c.Params("filename")
+	fmt.Println("send file image: ", filename)
+
+	resp, err := awss3.GetImage("/fullimages/", filename)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "La imagen no se encontro"})
+	}
+	defer resp.Body.Close()
+
+	c.Set("Content-Type", *resp.ContentType)
+	c.SendStream(resp.Body)
 	return c.SendStatus(http.StatusOK)
 }
 
