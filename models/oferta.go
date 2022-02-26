@@ -25,3 +25,11 @@ type OfertaLaboral struct {
 	Ciudad                   string `json:"ciudad"`
 	PostulanteDiscapacidad   bool   `json:"postulanteDiscapacidad"` // si el trabajo es para personas con capacidades limitadas.
 }
+
+// QueryEmpleo se utilizara para realizar consultas
+// En los empleos con una mayor exactitud.
+type QueryEmpleo struct {
+	Area      []string `json:"area"`
+	Ciudades  []string `json:"ciudades"`
+	Busquedad string   `json:"busquedad"`
+}
