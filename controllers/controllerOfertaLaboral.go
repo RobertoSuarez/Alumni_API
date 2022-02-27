@@ -8,6 +8,7 @@ import (
 	"github.com/RobertoSuarez/apialumni/database"
 	"github.com/RobertoSuarez/apialumni/models"
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 type ControllerOfertaLaboral struct {
@@ -36,17 +37,20 @@ func (cofetas *ControllerOfertaLaboral) ObtenerOfetasLaborales(c *fiber.Ctx) err
 
 	query := models.QueryEmpleo{}
 
-	err := c.BodyParser(&query)
+	err := c.QueryParser(&query)
 	if err != nil {
 		log.Println(err)
 	}
+
 	condiciones := make(map[string]interface{})
 
-	if len(query.Area) > 0 {
-		condiciones["area"] = query.Area
+	if len(query.Areas) > 0 && len(query.Areas[0]) > 0 {
+		condiciones["area"] = query.Areas
 	}
 
-	if len(query.Ciudades) > 0 {
+	// Cuando se estable la variable en la url, se estable un valor como cadena vacia
+	// con lo cual, se debe revisar la primera posición
+	if len(query.Ciudades) > 0 && len(query.Ciudades[0]) > 0 {
 		condiciones["ciudad"] = query.Ciudades
 	}
 
@@ -57,7 +61,20 @@ func (cofetas *ControllerOfertaLaboral) ObtenerOfetasLaborales(c *fiber.Ctx) err
 		consulta = consulta.Where("titulo like ?", "%"+query.Busquedad+"%")
 	}
 
-	result := consulta.Find(&ofertas)
+	result := consulta.Preload("Usuario", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select([]string{
+			"ID",
+			"IdentificacionTipo",
+			"NumeroIdentificacion",
+			"Nombres",
+			"Apellidos",
+			"Email",
+			//"Password",
+			"Nacimiento",
+			"Whatsapp",
+			"RoleCuenta",
+		})
+	}).Find(&ofertas)
 
 	//result := database.Database.Preload("Usuario").Find(&ofertas)
 	// result := database.Database.Preload("Usuario", func(tx *gorm.DB) *gorm.DB {

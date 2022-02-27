@@ -29,7 +29,7 @@ type OfertaLaboral struct {
 // QueryEmpleo se utilizara para realizar consultas
 // En los empleos con una mayor exactitud.
 type QueryEmpleo struct {
-	Area      []string `json:"area"`
-	Ciudades  []string `json:"ciudades"`
-	Busquedad string   `json:"busquedad"`
+	Areas     []string `json:"area" query:"areas"`
+	Ciudades  []string `json:"ciudades" query:"ciudades"`
+	Busquedad string   `json:"busquedad" query:"busquedad"`
 }
