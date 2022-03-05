@@ -23,6 +23,7 @@ func (cofertas *ControllerOfertaLaboral) ConfigPath(router fiber.Router) {
 	// Definimos las rutas.
 	router.Get("/", cofertas.ObtenerOfetasLaborales)
 	router.Post("/", ValidarJWT, cofertas.CrearOfertaLaboral)
+	router.Get("/:idempleo", cofertas.GetOfertaByID)
 }
 
 // Endpoint empleos
@@ -33,7 +34,7 @@ func (cofertas *ControllerOfertaLaboral) ConfigPath(router fiber.Router) {
 // Convertirlos a un struct y buscar los registros que coinsidad en la base de datos
 // luego enviar los registros de empleos al cliente en formato json.
 func (cofetas *ControllerOfertaLaboral) ObtenerOfetasLaborales(c *fiber.Ctx) error {
-	ofertas := []*models.OfertaLaboral{}
+	ofertas := []*models.Empleo{}
 
 	query := models.QueryEmpleo{}
 
@@ -107,7 +108,7 @@ func (ofertas *ControllerOfertaLaboral) CrearOfertaLaboral(c *fiber.Ctx) error {
 
 	fmt.Println("Creando oferta laboral, ", claims.IdUser)
 
-	oferta := models.OfertaLaboral{}
+	oferta := models.Empleo{}
 
 	err := c.BodyParser(&oferta)
 	if err != nil {
@@ -119,6 +120,7 @@ func (ofertas *ControllerOfertaLaboral) CrearOfertaLaboral(c *fiber.Ctx) error {
 	result := database.Database.Create(&oferta)
 
 	if result.Error != nil {
+		log.Println(result.Error)
 		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo registrar la oferta laboral"})
 	}
 
@@ -126,4 +128,26 @@ func (ofertas *ControllerOfertaLaboral) CrearOfertaLaboral(c *fiber.Ctx) error {
 
 	return c.Status(http.StatusOK).JSON(oferta)
 
+}
+
+// endpoint getEmpleo debe retornar el registro del empleo en base al id enviado por el cliente
+func (ofertas *ControllerOfertaLaboral) GetOfertaByID(c *fiber.Ctx) error {
+
+	empleo := models.Empleo{}
+
+	idusuario := c.Params("idempleo")
+
+	//fmt.Println(idusuario)
+
+	result := database.Database.Where("id = ?", idusuario).Find(&empleo)
+	//fmt.Println(result.Error)
+	if result.Error != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se encontro el empleo"})
+	}
+
+	if result.Statement.RowsAffected < 1 {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No existe ese registro"})
+	}
+
+	return c.JSON(empleo)
 }

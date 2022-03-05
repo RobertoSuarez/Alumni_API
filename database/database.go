@@ -25,21 +25,21 @@ func ConnectDB() {
 	// Migraciones
 	db.AutoMigrate(&models.Usuario{})
 	db.AutoMigrate(&models.TipoUsuario{})
-	db.AutoMigrate(&models.Admin{})
-	db.AutoMigrate(&models.Alumni{})
-	db.AutoMigrate(&models.OfertaLaboral{})
+	// db.AutoMigrate(&models.Admin{})
+	// db.AutoMigrate(&models.Alumni{})
+	db.AutoMigrate(&models.Empleo{})
 	db.AutoMigrate(&models.Educacion{})
 
 	// tipos de usuarios
-	tipos := []models.TipoUsuario{}
-	result := db.Find(&tipos)
-	if result.Error != nil {
-		fmt.Println(result.Error)
-	}
-	if len(tipos) == 0 {
-		Database.Create(&models.TipoUsuario{Tipo: "admin"})
-		Database.Create(&models.TipoUsuario{Tipo: "alumni"})
-	}
+	// tipos := []models.TipoUsuario{}
+	// result := db.Find(&tipos)
+	// if result.Error != nil {
+	// 	fmt.Println(result.Error)
+	// }
+	// if len(tipos) == 0 {
+	// 	Database.Create(&models.TipoUsuario{Tipo: "admin"})
+	// 	Database.Create(&models.TipoUsuario{Tipo: "alumni"})
+	// }
 
 	// db.Create(&models.Usuario{
 	// 	Email:    "electrosonix12@gmail.com",

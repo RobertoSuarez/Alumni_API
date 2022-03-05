@@ -13,3 +13,7 @@ type Educacion struct {
 	Nota                  string    `json:"nota"`
 	Descripcion           string    `json:"descripcion"`
 }
+
+func (Educacion) TableName() string {
+	return "eduacion"
+}

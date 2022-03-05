@@ -1,6 +1,9 @@
 package models
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var UsuarioCamposDB = []string{
 	"ID",
@@ -21,25 +24,26 @@ var UsuarioCamposDB = []string{
 }
 
 type Usuario struct {
-	ID                   uint   `json:"id" gorm:"primary_key"`
-	IdentificacionTipo   string `json:"identificacionTipo"`
-	NumeroIdentificacion string `json:"numeroIdentificacion"`
-	Nombres              string `json:"nombres"`
-	Apellidos            string `json:"apellidos"`
-	Email                string `json:"email"`
-	Password             string `json:"password,omitempty"`
-	Nacimiento           string `json:"nacimiento"`
-	Whatsapp             string `json:"whatsapp"`
-	URLAvatar            string `json:"urlAvatar"`
+	ID                   uint      `json:"id" gorm:"primary_key"`
+	IdentificacionTipo   string    `json:"identificacionTipo" gorm:"size:100"`
+	NumeroIdentificacion string    `json:"numeroIdentificacion" gorm:"size:100"`
+	Nombres              string    `json:"nombres" gorm:"size:200"`
+	Apellidos            string    `json:"apellidos" gorm:"size:200"`
+	Email                string    `json:"email" gorm:"size:200;unique;not null"`
+	Password             string    `json:"password,omitempty" gorm:"size:200"`
+	Nacimiento           time.Time `json:"nacimiento"`
+	Whatsapp             string    `json:"whatsapp" gorm:"size:200"`
+	URLAvatar            string    `json:"urlAvatar"`
+	Descripcion          string    `json:"descripcion"`
 	// TipoUsuarioID        uint        `json:"tipoUsuarioID"`
 	// TipoUsuario          TipoUsuario `json:"tipoUsuario" gorm:"foreignKey:TipoUsuarioID"`
 
 	EmailConfirmado bool `json:"emailConfirmado,omitempty"`
 
-	IsStaff   bool   `json:"isStaff"`   // si es del staff
-	StaffRole string `json:"staffRole"` // Administrador, moderador u otra cosa
+	IsStaff   bool   `json:"isStaff"`                   // si es del staff
+	StaffRole string `json:"staffRole" gorm:"size:200"` // Administrador, moderador u otra cosa
 
-	RoleCuenta string `json:"roleCuenta"` // si es alumno, alumni o usuarionormal
+	RoleCuenta string `json:"roleCuenta" gorm:"size:200"` // si es alumno, alumni o usuarionormal
 
 	// // agregar los tipos de usuarios
 	// AdminID uint   `json:"-"`
@@ -50,9 +54,13 @@ type Usuario struct {
 
 	// datos de gorm
 
-	OfertasLaborales []OfertaLaboral `json:"ofertaLaboral,omitempty" gorm:"foreignKey:UsuarioID"`
+	OfertasLaborales []Empleo `json:"ofertaLaboral,omitempty" gorm:"foreignKey:UsuarioID"`
 
 	Educacion []Educacion `json:"educacion,omitempty" gorm:"foreignKey:UsuarioID"` // este va hacer el historial academico
+}
+
+func (Usuario) TableName() string {
+	return "usuario"
 }
 
 type TipoUsuario struct {
