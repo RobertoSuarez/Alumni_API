@@ -34,5 +34,6 @@ go.work
 imgs/*.png
 
 # viables de entorno
-env.sh
-.env
+#env.sh
+#.env
+tmp

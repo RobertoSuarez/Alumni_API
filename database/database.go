@@ -12,7 +12,14 @@ import (
 var Database *gorm.DB
 
 func ConnectDB() {
+	viper.AddConfigPath(".")
+	viper.SetConfigName("app")
+	viper.SetConfigType("env")
+
 	viper.AutomaticEnv()
+
+	viper.ReadInConfig()
+
 	fmt.Println("url postgresql: ", viper.GetString("DATABASE_URL"))
 
 	db, err := gorm.Open(postgres.Open(viper.GetString("DATABASE_URL")), &gorm.Config{})
