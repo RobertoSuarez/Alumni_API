@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/RobertoSuarez/apialumni/config"
 	"github.com/RobertoSuarez/apialumni/controllers"
@@ -45,22 +44,6 @@ func main() {
 	config.Use(api.Group("/users"), controllers.NewControllerUsuario())
 	config.Use(api.Group("/ofertas"), controllers.NewControllerOfertaLaboral())
 	config.Use(api.Group("/educacion"), controllers.NewControllerEducacion())
-
-	// Frontend
-	app.Static("/", "./dist", fiber.Static{
-		Compress:      true,
-		ByteRange:     true,
-		Browse:        true,
-		CacheDuration: 10 * time.Second,
-		MaxAge:        3600,
-	})
-	app.Static("/*", "./dist", fiber.Static{
-		Compress:      true,
-		ByteRange:     true,
-		Browse:        true,
-		CacheDuration: 10 * time.Second,
-		MaxAge:        3600,
-	})
 
 	logrus.Info("listen to :" + viper.GetString("port"))
 	app.Listen(":" + viper.GetString("port"))
