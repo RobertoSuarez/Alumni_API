@@ -1,8 +1,6 @@
 package database
 
 import (
-	"fmt"
-
 	"github.com/RobertoSuarez/apialumni/models"
 	"github.com/spf13/viper"
 	"gorm.io/driver/postgres"
@@ -11,18 +9,11 @@ import (
 
 var Database *gorm.DB
 
-func ConnectDB() {
-	viper.AddConfigPath(".")
-	viper.SetConfigName("app")
-	viper.SetConfigType("env")
+func ConnectDB(config *viper.Viper) {
 
-	viper.AutomaticEnv()
+	//fmt.Println("url postgresql: ", config.GetString("DATABASE_URL"))
 
-	viper.ReadInConfig()
-
-	fmt.Println("url postgresql: ", viper.GetString("DATABASE_URL"))
-
-	db, err := gorm.Open(postgres.Open(viper.GetString("DATABASE_URL")), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(config.GetString("DATABASE_URL")), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}

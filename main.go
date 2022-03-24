@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"log"
 	"time"
 
 	"github.com/RobertoSuarez/apialumni/config"
@@ -18,10 +20,21 @@ func init() {
 }
 
 func main() {
-	viper.AutomaticEnv()
-	viper.SetDefault("port", "3000")
+	configvar := viper.New()
+	configvar.AddConfigPath(".")
+	configvar.SetConfigName("app")
+	configvar.SetConfigType("env")
 
-	database.ConnectDB()
+	configvar.AutomaticEnv()
+
+	if err := configvar.ReadInConfig(); err != nil {
+		fmt.Println("Error al leer las variables de configuración")
+		log.Println(err)
+	} else {
+		fmt.Println("Las variables se establecierón correctamente")
+	}
+
+	database.ConnectDB(configvar)
 
 	app := fiber.New()
 
