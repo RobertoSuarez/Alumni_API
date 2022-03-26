@@ -6,7 +6,7 @@ import (
 
 	"github.com/RobertoSuarez/apialumni/config"
 	"github.com/RobertoSuarez/apialumni/controllers"
-	"github.com/RobertoSuarez/apialumni/database"
+	"github.com/RobertoSuarez/apialumni/models"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 
 	"github.com/gofiber/fiber/v2"
@@ -33,18 +33,19 @@ func main() {
 		fmt.Println("Las variables se establecierón correctamente")
 	}
 
-	database.ConnectDB(configvar)
+	// Iniciamos la base de datos con las tablas
+	models.InitDataBaseTable(configvar)
 
 	app := fiber.New()
 
 	app.Use(cors.New())
 	api := app.Group("/api/v1")
 
-	config.Use(api.Group("/auth"), controllers.NewControllerAuth())
-	config.Use(api.Group("/users"), controllers.NewControllerUsuario())
-	config.Use(api.Group("/ofertas"), controllers.NewControllerOfertaLaboral())
-	config.Use(api.Group("/educacion"), controllers.NewControllerEducacion())
+	config.UseMount("/auth", api, controllers.NewControllerAuth())
+	config.UseMount("/usuarios", api, controllers.NewControllerUsuario())
+	config.UseMount("/ofertas", api, controllers.NewControllerOfertaLaboral())
+	config.UseMount("/educacion", api, controllers.NewControllerEducacion())
 
-	logrus.Info("listen to :" + viper.GetString("port"))
-	app.Listen(":" + viper.GetString("port"))
+	logrus.Info("listen to :" + configvar.GetString("port"))
+	app.Listen(":" + configvar.GetString("port"))
 }

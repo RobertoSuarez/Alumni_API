@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/RobertoSuarez/apialumni/database"
 	"github.com/RobertoSuarez/apialumni/models"
 	"github.com/gofiber/fiber/v2"
 )
@@ -15,11 +14,12 @@ func NewControllerEducacion() *ControllerEducacion {
 	return &ControllerEducacion{}
 }
 
-func (educacion *ControllerEducacion) ConfigPath(router fiber.Router) {
+func (educacion *ControllerEducacion) ConfigPath(app *fiber.App) *fiber.App {
 
-	router.Get("/:iduser", educacion.GetEducacionHandler)
-	router.Post("/", ValidarJWT, educacion.CreateEducacionHandler)
+	app.Get("/:iduser", educacion.GetEducacionHandler)
+	app.Post("/", ValidarJWT, educacion.CreateEducacionHandler)
 
+	return app
 }
 
 // Retorna el usuario que se autentica con el token
@@ -28,7 +28,7 @@ func (cuser *ControllerEducacion) GetEducacionHandler(c *fiber.Ctx) error {
 	log.Println(idusuario)
 	educacion := []*models.Educacion{}
 
-	database.Database.Where("usuario_id = ?", idusuario).Find(&educacion)
+	// database.Database.Where("usuario_id = ?", idusuario).Find(&educacion)
 
 	return c.Status(http.StatusOK).JSON(educacion)
 }
@@ -46,12 +46,12 @@ func (educacion *ControllerEducacion) CreateEducacionHandler(c *fiber.Ctx) error
 
 	edu.UsuarioID = claims.IdUser
 
-	result := database.Database.Create(&edu)
+	//result := database.Database.Create(&edu)
 
-	if result.Error != nil {
-		log.Println(result.Error)
-		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo registrar"})
-	}
+	// if result.Error != nil {
+	// 	log.Println(result.Error)
+	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo registrar"})
+	// }
 
 	return c.Status(http.StatusOK).JSON(edu)
 }

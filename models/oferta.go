@@ -4,7 +4,7 @@ import "time"
 
 type Empleo struct {
 	ID        uint     `json:"id" gorm:"primary_key"`
-	UsuarioID uint     `json:"usuarioID"` // foreignKey
+	UsuarioID uint64   `json:"usuarioID"` // foreignKey
 	Usuario   *Usuario `json:"usuario,omitempty"`
 
 	Fecha   time.Time `json:"fecha"`

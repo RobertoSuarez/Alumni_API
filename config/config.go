@@ -3,9 +3,9 @@ package config
 import "github.com/gofiber/fiber/v2"
 
 type ConfigMicroServicio interface {
-	ConfigPath(router fiber.Router)
+	ConfigPath(app *fiber.App) *fiber.App
 }
 
-func Use(r fiber.Router, microServicio ConfigMicroServicio) {
-	microServicio.ConfigPath(r)
+func UseMount(prefix string, r fiber.Router, microServicio ConfigMicroServicio) {
+	r.Mount(prefix, microServicio.ConfigPath(fiber.New()))
 }

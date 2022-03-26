@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -24,62 +25,81 @@ var UsuarioCamposDB = []string{
 }
 
 type Usuario struct {
-	ID                   uint      `json:"id" gorm:"primary_key"`
+	ID                   uint64 `json:"id" gorm:"primary_key"`
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
 	IdentificacionTipo   string    `json:"identificacionTipo" gorm:"size:100"`
 	NumeroIdentificacion string    `json:"numeroIdentificacion" gorm:"size:100"`
 	Nombres              string    `json:"nombres" gorm:"size:200"`
 	Apellidos            string    `json:"apellidos" gorm:"size:200"`
-	Email                string    `json:"email" gorm:"size:200;unique;not null"`
-	Password             string    `json:"password,omitempty" gorm:"size:200"`
+	Email                string    `json:"email" gorm:"not null;unique"`
+	Password             string    `json:"password,omitempty" gorm:"size:200;not null"`
 	Nacimiento           time.Time `json:"nacimiento"`
-	Whatsapp             string    `json:"whatsapp" gorm:"size:200"`
-	URLAvatar            string    `json:"urlAvatar"`
+	Phone                string    `json:"phone"`
+	Avatar               string    `json:"avatar"`
 	Descripcion          string    `json:"descripcion"`
-	// TipoUsuarioID        uint        `json:"tipoUsuarioID"`
-	// TipoUsuario          TipoUsuario `json:"tipoUsuario" gorm:"foreignKey:TipoUsuarioID"`
-
-	EmailConfirmado bool `json:"emailConfirmado,omitempty"`
-
-	IsStaff   bool   `json:"isStaff"`                   // si es del staff
-	StaffRole string `json:"staffRole" gorm:"size:200"` // Administrador, moderador u otra cosa
-
-	RoleCuenta string `json:"roleCuenta" gorm:"size:200"` // si es alumno, alumni o usuarionormal
-
-	// // agregar los tipos de usuarios
-	// AdminID uint   `json:"-"`
-	// Admin   *Admin `json:"admin,omitempty" gorm:"foreignKey:AdminID"`
-
-	// AlumniID uint    `json:"-"`
-	// Alumni   *Alumni `json:"alumni,omitempty" gorm:"foreignKey:AlumniID"`
-
-	// datos de gorm
-
-	OfertasLaborales []Empleo `json:"ofertaLaboral,omitempty" gorm:"foreignKey:UsuarioID"`
-
-	Educacion []Educacion `json:"educacion,omitempty" gorm:"foreignKey:UsuarioID"` // este va hacer el historial academico
+	Grupos               []Grupo   `gorm:"many2many:usuario_grupos;"`
+	IsSuper              bool      `json:"is_super_user"`
+	EmailConfirmado      bool      `json:"emailConfirmado,omitempty"`
+	Genero               string    `json:"genero" gorm:"size:75"`
+	FechaGraduacion      time.Time `json:"fechaGraduacion"`
+	NivelAcademico       string    `json:"nivelAcademico"`
+	EsDiscapacitado      bool      `json:"esDiscapacitado"`
 }
 
 func (Usuario) TableName() string {
 	return "usuario"
 }
 
-type TipoUsuario struct {
-	ID   uint   `json:"id" gorm:"primary_key"`
-	Tipo string `json:"tipo"`
-}
+func (u Usuario) GetUno() (resultado Usuario, err error) {
 
-type Estado struct {
-	Usando bool
-}
-
-type ListTipoUsuarios []TipoUsuario
-
-func (listTipos *ListTipoUsuarios) GetID(tipo string) (uint, error) {
-	for _, v := range *listTipos {
-		if v.Tipo == tipo {
-			return v.ID, nil
-		}
+	if err = DB.First(&resultado, u.ID).Error; err != nil {
+		return resultado, errors.New("no se puede encontrar el usuario")
 	}
 
-	return 0, errors.New("no existe ese tipo de usuario")
+	return resultado, nil
+}
+
+// LoginUsuario revisar en la db que el usuario y contreseña existan.
+func (Usuario) LoginUsuario(email, password string) (*Usuario, error) {
+	usuario := Usuario{}
+
+	// Busca en la base de datos
+	result := DB.
+		Where("email = ? AND password = ?", email, password).First(&usuario)
+
+	// controlamos el error
+	if result.Error != nil {
+		return nil, errors.New("no existe ese registro")
+	}
+
+	return &usuario, nil
+	//Database.Preload("Admin").Preload("Alumni").Preload("TipoUsuario").First(&usuario)
+}
+
+// Obtener todos los usuario registrado en la base de datos
+func (Usuario) GetAll() (usuarios []Usuario, err error) {
+	usuarios = []Usuario{}
+
+	result := DB.Find(&usuarios)
+	if result.Error != nil {
+		fmt.Println(result.Error)
+		return usuarios, result.Error
+	}
+
+	return usuarios, nil
+}
+
+// Crear metodo para insertar un usuario en la base de datos
+func (u *Usuario) Crear() error {
+	tx := DB.Begin()
+
+	if err := tx.Create(&u).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+
+	return nil
 }

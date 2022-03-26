@@ -5,10 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/RobertoSuarez/apialumni/database"
 	"github.com/RobertoSuarez/apialumni/models"
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 )
 
 type ControllerOfertaLaboral struct {
@@ -18,12 +16,14 @@ func NewControllerOfertaLaboral() *ControllerOfertaLaboral {
 	return &ControllerOfertaLaboral{}
 }
 
-func (cofertas *ControllerOfertaLaboral) ConfigPath(router fiber.Router) {
+func (cofertas *ControllerOfertaLaboral) ConfigPath(app *fiber.App) *fiber.App {
 
 	// Definimos las rutas.
-	router.Get("/", cofertas.ObtenerOfetasLaborales)
-	router.Post("/", ValidarJWT, cofertas.CrearOfertaLaboral)
-	router.Get("/:idempleo", cofertas.GetOfertaByID)
+	app.Get("/", cofertas.ObtenerOfetasLaborales)
+	app.Post("/", ValidarJWT, cofertas.CrearOfertaLaboral)
+	app.Get("/:idempleo", cofertas.GetOfertaByID)
+
+	return app
 }
 
 // Endpoint empleos
@@ -55,27 +55,27 @@ func (cofetas *ControllerOfertaLaboral) ObtenerOfetasLaborales(c *fiber.Ctx) err
 		condiciones["ciudad"] = query.Ciudades
 	}
 
-	consulta := database.Database.Where(condiciones)
+	// consulta := database.Database.Where(condiciones)
 
-	// si el usuario no ingreso ningun texto, no se considara la busquedad por el titulo
-	if len(query.Busquedad) > 0 {
-		consulta = consulta.Where("titulo like ?", "%"+query.Busquedad+"%")
-	}
+	// // si el usuario no ingreso ningun texto, no se considara la busquedad por el titulo
+	// if len(query.Busquedad) > 0 {
+	// 	consulta = consulta.Where("titulo like ?", "%"+query.Busquedad+"%")
+	// }
 
-	result := consulta.Preload("Usuario", func(tx *gorm.DB) *gorm.DB {
-		return tx.Select([]string{
-			"ID",
-			"IdentificacionTipo",
-			"NumeroIdentificacion",
-			"Nombres",
-			"Apellidos",
-			"Email",
-			//"Password",
-			"Nacimiento",
-			"Whatsapp",
-			"RoleCuenta",
-		})
-	}).Find(&ofertas)
+	// result := consulta.Preload("Usuario", func(tx *gorm.DB) *gorm.DB {
+	// 	return tx.Select([]string{
+	// 		"ID",
+	// 		"IdentificacionTipo",
+	// 		"NumeroIdentificacion",
+	// 		"Nombres",
+	// 		"Apellidos",
+	// 		"Email",
+	// 		//"Password",
+	// 		"Nacimiento",
+	// 		"Whatsapp",
+	// 		"RoleCuenta",
+	// 	})
+	// }).Find(&ofertas)
 
 	//result := database.Database.Preload("Usuario").Find(&ofertas)
 	// result := database.Database.Preload("Usuario", func(tx *gorm.DB) *gorm.DB {
@@ -93,10 +93,10 @@ func (cofetas *ControllerOfertaLaboral) ObtenerOfetasLaborales(c *fiber.Ctx) err
 	// 	})
 	// }).Find(&ofertas)
 
-	if result.Error != nil {
-		log.Println(result.Error)
-		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error en la db"})
-	}
+	// if result.Error != nil {
+	// 	log.Println(result.Error)
+	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error en la db"})
+	// }
 
 	return c.JSON(ofertas)
 }
@@ -117,12 +117,12 @@ func (ofertas *ControllerOfertaLaboral) CrearOfertaLaboral(c *fiber.Ctx) error {
 
 	oferta.UsuarioID = claims.IdUser
 
-	result := database.Database.Create(&oferta)
+	// result := database.Database.Create(&oferta)
 
-	if result.Error != nil {
-		log.Println(result.Error)
-		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo registrar la oferta laboral"})
-	}
+	// if result.Error != nil {
+	// 	log.Println(result.Error)
+	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se pudo registrar la oferta laboral"})
+	// }
 
 	//database.Database.Where("id = ?", oferta.ID).First(&oferta)
 
@@ -136,18 +136,19 @@ func (ofertas *ControllerOfertaLaboral) GetOfertaByID(c *fiber.Ctx) error {
 	empleo := models.Empleo{}
 
 	idusuario := c.Params("idempleo")
+	_ = idusuario
 
 	//fmt.Println(idusuario)
 
-	result := database.Database.Where("id = ?", idusuario).Find(&empleo)
-	//fmt.Println(result.Error)
-	if result.Error != nil {
-		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se encontro el empleo"})
-	}
+	// result := database.Database.Where("id = ?", idusuario).Find(&empleo)
+	// //fmt.Println(result.Error)
+	// if result.Error != nil {
+	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No se encontro el empleo"})
+	// }
 
-	if result.Statement.RowsAffected < 1 {
-		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No existe ese registro"})
-	}
+	// if result.Statement.RowsAffected < 1 {
+	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "No existe ese registro"})
+	// }
 
 	return c.JSON(empleo)
 }
