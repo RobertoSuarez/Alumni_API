@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/RobertoSuarez/apialumni/awss3"
@@ -29,9 +30,31 @@ func (user *Usuario) ConfigPath(router *fiber.App) *fiber.App {
 	router.Get("/avataraws/:filename", user.GetAvatarUsuarioAWS)
 	router.Post("/avataraws", ValidarJWT, user.subirAvatarAWS)
 
+	router.Post("/agregar-grupo/:idusuario", user.AgergarGrupo)
 	router.Get("/:iduser", user.GetUsuarioByID)
 
 	return router
+}
+
+func (u *Usuario) AgergarGrupo(c *fiber.Ctx) error {
+	var grupo models.Grupo
+	idusuario := c.Params("idusuario")
+	ID, err := strconv.ParseInt(idusuario, 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	err = c.BodyParser(&grupo)
+	if err != nil {
+		return c.Status(400).SendString("Error en el grupo")
+	}
+
+	err = models.Usuario{ID: uint64(ID)}.AgregarGrupo(grupo)
+	if err != nil {
+		return c.Status(400).SendString("No se pudo agregar el grupo")
+	}
+
+	return c.SendStatus(http.StatusOK)
 }
 
 // Envia el avatar al cliente
@@ -72,15 +95,17 @@ func (user *Usuario) ObtenerUsuarios(c *fiber.Ctx) error {
 // Recuper de la base de datos, el usuario que se le pasa por id.
 func (user *Usuario) GetUsuarioByID(c *fiber.Ctx) error {
 	idusuario := c.Params("iduser")
-	_ = idusuario
+	ID, err := strconv.ParseInt(idusuario, 10, 64)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "El ID no es un entero"})
+	}
 
-	usuario := models.Usuario{}
-	// result := database.Database.Where("ID = ?", idusuario).Select(models.UsuarioCamposDB).Find(&usuario)
-	// if result.Error != nil {
-	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al consultar el usuario"})
-	// }
+	usuario, err := models.Usuario{ID: uint64(ID)}.GetUsuarioByID()
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al consultar el usuario"})
+	}
 
-	fmt.Println("Usuario recuperado de la base de datos: ", usuario)
+	//fmt.Println("Usuario recuperado de la base de datos: ", usuario)
 
 	return c.Status(http.StatusOK).JSON(usuario)
 

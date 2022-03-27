@@ -45,6 +45,7 @@ func main() {
 	config.UseMount("/usuarios", api, controllers.NewControllerUsuario())
 	config.UseMount("/ofertas", api, controllers.NewControllerOfertaLaboral())
 	config.UseMount("/educacion", api, controllers.NewControllerEducacion())
+	config.UseMount("/grupos", api, controllers.NewGrupo())
 
 	logrus.Info("listen to :" + configvar.GetString("port"))
 	app.Listen(":" + configvar.GetString("port"))

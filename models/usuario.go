@@ -38,26 +38,17 @@ type Usuario struct {
 	Phone                string    `json:"phone"`
 	Avatar               string    `json:"avatar"`
 	Descripcion          string    `json:"descripcion"`
-	Grupos               []Grupo   `gorm:"many2many:usuario_grupos;"`
 	IsSuper              bool      `json:"is_super_user"`
 	EmailConfirmado      bool      `json:"emailConfirmado,omitempty"`
 	Genero               string    `json:"genero" gorm:"size:75"`
 	FechaGraduacion      time.Time `json:"fechaGraduacion"`
 	NivelAcademico       string    `json:"nivelAcademico"`
 	EsDiscapacitado      bool      `json:"esDiscapacitado"`
+	Grupos               []Grupo   `json:"grupos,omitempty" gorm:"many2many:usuario_grupos;"`
 }
 
 func (Usuario) TableName() string {
 	return "usuario"
-}
-
-func (u Usuario) GetUno() (resultado Usuario, err error) {
-
-	if err = DB.First(&resultado, u.ID).Error; err != nil {
-		return resultado, errors.New("no se puede encontrar el usuario")
-	}
-
-	return resultado, nil
 }
 
 // LoginUsuario revisar en la db que el usuario y contreseña existan.
@@ -90,6 +81,18 @@ func (Usuario) GetAll() (usuarios []Usuario, err error) {
 	return usuarios, nil
 }
 
+// GetUsuarioByID retorna el usuario mediante el ID, el ID se
+// debe pasar con el objeto que lo invoca.
+func (u Usuario) GetUsuarioByID() (usuario Usuario, err error) {
+	err = DB.First(&usuario, u.ID).Error
+	if err != nil {
+		return usuario, err
+	}
+
+	DB.Model(&usuario).Association("Grupos").Find(&usuario.Grupos)
+	return usuario, nil
+}
+
 // Crear metodo para insertar un usuario en la base de datos
 func (u *Usuario) Crear() error {
 	tx := DB.Begin()
@@ -101,5 +104,18 @@ func (u *Usuario) Crear() error {
 
 	tx.Commit()
 
+	return nil
+}
+
+// Agregar grupo a usuario
+func (u Usuario) AgregarGrupo(g Grupo) error {
+	tx := DB.Begin()
+
+	err := tx.Model(&u).Association("Grupos").Append(&g)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
 	return nil
 }
