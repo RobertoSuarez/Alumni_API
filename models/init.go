@@ -18,4 +18,5 @@ func InitDataBaseTable(config *viper.Viper) {
 	DB.AutoMigrate(&Educacion{})
 	DB.AutoMigrate(&RoleUsuario{})
 	DB.AutoMigrate(&Grupo{})
+	DB.AutoMigrate(&Trabajo{})
 }

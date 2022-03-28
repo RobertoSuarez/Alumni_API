@@ -23,6 +23,7 @@ func (user *Usuario) ConfigPath(router *fiber.App) *fiber.App {
 
 	router.Get("/", user.ObtenerUsuarios)
 	router.Post("/", user.CrearUsuario)
+	router.Delete("/", user.EliminarUsuario)
 
 	router.Get("/avatar/:filename", user.GetAvatarUsuario)
 	router.Post("/avatar", ValidarJWT, user.subirAvatar)
@@ -31,9 +32,31 @@ func (user *Usuario) ConfigPath(router *fiber.App) *fiber.App {
 	router.Post("/avataraws", ValidarJWT, user.subirAvatarAWS)
 
 	router.Post("/agregar-grupo/:idusuario", user.AgergarGrupo)
+	router.Post("/agregar-trabajo/:idusuario", user.AgregarTrabajo)
 	router.Get("/:iduser", user.GetUsuarioByID)
 
 	return router
+}
+
+func (u *Usuario) EliminarUsuario(c *fiber.Ctx) error {
+	type usuariosID struct {
+		IDS []uint64 `json:"ids"`
+	}
+	usuarios := usuariosID{}
+	err := c.BodyParser(&usuarios)
+	if err != nil {
+		return c.Status(400).SendString("error en los datos")
+	}
+	fmt.Println("usuarios ids: ", usuarios)
+
+	err = models.Usuario{}.Eliminar(usuarios.IDS)
+	if err != nil {
+		fmt.Println(err)
+		return c.Status(400).SendString("no se pudieron eliminar los usuarios")
+	}
+
+	return c.SendStatus(http.StatusOK)
+
 }
 
 func (u *Usuario) AgergarGrupo(c *fiber.Ctx) error {
@@ -186,6 +209,28 @@ func (user *Usuario) subirAvatarAWS(c *fiber.Ctx) error {
 	// if result.Error != nil {
 	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al actualizar el nombre de la imagen"})
 	// }
+
+	return c.SendStatus(http.StatusOK)
+}
+
+//Agregar un nuevo trabajo al usuario que se pasa por el id
+func (u *Usuario) AgregarTrabajo(c *fiber.Ctx) error {
+	var trabajo models.Trabajo
+
+	idusuario := c.Params("idusuario")
+	ID, err := strconv.ParseInt(idusuario, 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	if err = c.BodyParser(&trabajo); err != nil {
+		return c.Status(400).SendString("Error al convertir los datos")
+	}
+	fmt.Println("Trabajo: ", trabajo)
+	err = models.Usuario{ID: uint64(ID)}.AgregarTrabajo(trabajo)
+	if err != nil {
+		return c.Status(400).SendString("Error al registrar el trabajo")
+	}
 
 	return c.SendStatus(http.StatusOK)
 }

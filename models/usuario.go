@@ -45,6 +45,7 @@ type Usuario struct {
 	NivelAcademico       string    `json:"nivelAcademico"`
 	EsDiscapacitado      bool      `json:"esDiscapacitado"`
 	Grupos               []Grupo   `json:"grupos,omitempty" gorm:"many2many:usuario_grupos;"`
+	Trabajos             []Trabajo `json:"trabajos,omitempty" gorm:"foreignKey:UsuarioID"`
 }
 
 func (Usuario) TableName() string {
@@ -90,6 +91,7 @@ func (u Usuario) GetUsuarioByID() (usuario Usuario, err error) {
 	}
 
 	DB.Model(&usuario).Association("Grupos").Find(&usuario.Grupos)
+	DB.Model(&usuario).Association("Trabajos").Find(&usuario.Trabajos)
 	return usuario, nil
 }
 
@@ -116,6 +118,39 @@ func (u Usuario) AgregarGrupo(g Grupo) error {
 		tx.Rollback()
 		return err
 	}
+	tx.Commit()
+	return nil
+}
+
+//Agregar trabajo agregara un nuevo registro de trabajo
+// que solo este mismo usuario prodra administrar
+func (u Usuario) AgregarTrabajo(t Trabajo) error {
+	tx := DB.Begin()
+	fmt.Println("Trabajo en models: ", t)
+	err := tx.Model(&u).Association("Trabajos").Append(&t)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+// Elimina un usuario en todas sus instancias
+func (u Usuario) Eliminar(ids []uint64) error {
+	tx := DB.Begin()
+
+	if err := tx.Exec("DELETE FROM usuario WHERE id IN (?)", ids).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if err := tx.Exec("DELETE FROM usuario_grupos WHERE usuario_id IN (?)", ids).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	tx.Commit()
 	return nil
 }
