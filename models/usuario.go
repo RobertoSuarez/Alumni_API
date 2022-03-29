@@ -46,6 +46,8 @@ type Usuario struct {
 	EsDiscapacitado      bool      `json:"esDiscapacitado"`
 	Grupos               []Grupo   `json:"grupos,omitempty" gorm:"many2many:usuario_grupos;"`
 	Trabajos             []Trabajo `json:"trabajos,omitempty" gorm:"foreignKey:UsuarioID"`
+	EmpresasPropias      []Empresa `json:"empresasPropias,omitempty" gorm:"foreignKey:UsuarioCreadorID"`
+	EmpresasAsociadas    []Empresa `json:"empresaAsociadas,omitempty" gorm:"many2many:usuario_empresas_asociadas;"`
 }
 
 func (Usuario) TableName() string {
