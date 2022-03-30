@@ -68,3 +68,13 @@ func (e *Empresa) Actualizar() error {
 	tx.Commit()
 	return nil
 }
+
+// Listar las empresas por el id del dueño de la empresa
+func (Empresa) ListarPorCreador(idCreador uint64) (empresas []Empresa, err error) {
+
+	if err = DB.Where("usuario_creador_id = ?", idCreador).Find(&empresas).Error; err != nil {
+		return empresas, err
+	}
+
+	return empresas, nil
+}

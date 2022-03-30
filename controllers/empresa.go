@@ -16,6 +16,7 @@ func NewEmpresa() *Empresa {
 
 func (empresa *Empresa) ConfigPath(router *fiber.App) *fiber.App {
 	router.Get("/", empresa.ObtenerEmpresas)
+	router.Get("/por-creador/:id", empresa.ObtenerEmpresasPorCreador)
 	router.Post("/", empresa.CrearEmpresa)
 	router.Put("/:id", empresa.Actualizar)
 
@@ -74,4 +75,20 @@ func (Empresa) Actualizar(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(empresa)
+}
+
+// Este controlador tomara todas las empresas que considan con el id creador
+func (Empresa) ObtenerEmpresasPorCreador(c *fiber.Ctx) error {
+	idcreador := c.Params("id")
+	ID, err := strconv.ParseInt(idcreador, 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
+	empresas, err := models.Empresa{}.ListarPorCreador(uint64(ID))
+	if err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
+	return c.JSON(empresas)
 }
