@@ -24,6 +24,7 @@ func (user *Usuario) ConfigPath(router *fiber.App) *fiber.App {
 	router.Get("/", user.ObtenerUsuarios)
 	router.Post("/", user.CrearUsuario)
 	router.Delete("/", user.EliminarUsuario)
+	router.Put("/:id", user.Actualizar)
 
 	router.Get("/avatar/:filename", user.GetAvatarUsuario)
 	router.Post("/avatar", ValidarJWT, user.subirAvatar)
@@ -233,4 +234,27 @@ func (u *Usuario) AgregarTrabajo(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(http.StatusOK)
+}
+
+// TODO: Actualizar usuario
+func (u *Usuario) Actualizar(c *fiber.Ctx) error {
+	usuario := models.Usuario{}
+	idusuario := c.Params("id")
+	ID, err := strconv.ParseInt(idusuario, 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	if err = c.BodyParser(&usuario); err != nil {
+		return c.Status(400).SendString("Error al convertir los datos")
+	}
+
+	usuario.ID = uint64(ID)
+
+	err = usuario.Actualizar()
+	if err != nil {
+		return c.Status(400).SendString("Error al actualizar en la DB " + err.Error())
+	}
+
+	return c.JSON(usuario)
 }

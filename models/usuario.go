@@ -157,3 +157,31 @@ func (u Usuario) Eliminar(ids []uint64) error {
 	tx.Commit()
 	return nil
 }
+
+func (u *Usuario) Actualizar() error {
+	tx := DB.Begin()
+	//campos := "identificacion_tipo,numero_identificacion,nombres,apellidos,nacimiento,phone,descripcion,genero,fecha_graduacion,nivel_academico,es_discapacitado"
+	// Campos que se actualizaran en la tabla
+	err := tx.Model(&u).Updates(Usuario{
+		IdentificacionTipo:   u.IdentificacionTipo,
+		NumeroIdentificacion: u.NumeroIdentificacion,
+		Nombres:              u.Nombres,
+		Apellidos:            u.Apellidos,
+		Nacimiento:           u.Nacimiento,
+		Phone:                u.Phone,
+		Descripcion:          u.Descripcion,
+		Genero:               u.Genero,
+		FechaGraduacion:      u.FechaGraduacion,
+		NivelAcademico:       u.NivelAcademico,
+		EsDiscapacitado:      u.EsDiscapacitado,
+	}).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.First(&u, u.ID)
+
+	tx.Commit()
+	return nil
+}
