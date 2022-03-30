@@ -39,7 +39,7 @@ type Usuario struct {
 	Avatar               string    `json:"avatar"`
 	Descripcion          string    `json:"descripcion"`
 	IsSuper              bool      `json:"is_super_user"`
-	EmailConfirmado      bool      `json:"emailConfirmado,omitempty"`
+	EmailConfirmado      bool      `json:"emailConfirmado"`
 	Genero               string    `json:"genero" gorm:"size:75"`
 	FechaGraduacion      time.Time `json:"fechaGraduacion"`
 	NivelAcademico       string    `json:"nivelAcademico"`
@@ -181,6 +181,29 @@ func (u *Usuario) Actualizar() error {
 	}
 
 	tx.First(&u, u.ID)
+
+	tx.Commit()
+	return nil
+}
+
+// Verificar o confirmar el correo de la cuenta
+func (u Usuario) ConfirmarCorreo() error {
+
+	if u.ID < 1 {
+		return errors.New("falta el id del usuario")
+	}
+	tx := DB.Begin()
+
+	result := tx.Model(&u).Update("email_confirmado", true)
+	if result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
+
+	if result.RowsAffected < 1 {
+		tx.Rollback()
+		return errors.New("no existe usuario con ese id")
+	}
 
 	tx.Commit()
 	return nil

@@ -26,6 +26,8 @@ func (user *Usuario) ConfigPath(router *fiber.App) *fiber.App {
 	router.Delete("/", user.EliminarUsuario)
 	router.Put("/:id", user.Actualizar)
 
+	router.Post("/confirmar-correo/:id", user.ConfirmarCorreo)
+
 	router.Get("/avatar/:filename", user.GetAvatarUsuario)
 	router.Post("/avatar", ValidarJWT, user.subirAvatar)
 
@@ -257,4 +259,22 @@ func (u *Usuario) Actualizar(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(usuario)
+}
+
+// confirma un usuario, que verifica su usuario correo
+func (u *Usuario) ConfirmarCorreo(c *fiber.Ctx) error {
+	usuario := models.Usuario{}
+	idusuario := c.Params("id")
+	ID, err := strconv.ParseInt(idusuario, 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	usuario.ID = uint64(ID)
+
+	err = usuario.ConfirmarCorreo()
+	if err != nil {
+		return c.Status(400).SendString(err.Error())
+	}
+	return c.SendStatus(http.StatusOK)
 }
