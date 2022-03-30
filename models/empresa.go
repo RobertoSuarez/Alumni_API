@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type Empresa struct {
 	ID               uint64 `json:"id" gorm:"primary_key"`
@@ -16,7 +19,8 @@ type Empresa struct {
 	Longitud         string    `json:"longitud" gorm:"size:200"`
 	Latitud          string    `json:"latitud" gorm:"size:200"`
 	UsuarioCreadorID uint64    `json:"usuarioCreadorID"`
-	Usuarios         []Usuario `json:"usuarios" gorm:"many2many:usuario_empresas_asociadas;"`
+	Usuario          *Usuario  `json:"usuario,omitempty" gorm:"foreignKey:UsuarioCreadorID"` // este es el usuario que ha creado esta empresa
+	Usuarios         []Usuario `json:"usuarios,omitempty" gorm:"many2many:usuario_empresas_asociadas;"`
 }
 
 func (Empresa) TableName() string {
@@ -24,6 +28,11 @@ func (Empresa) TableName() string {
 }
 
 func (e *Empresa) CrearEmpresa() error {
+
+	if e.UsuarioCreadorID < 1 {
+		return errors.New("es necesario el id del usuariocreador")
+	}
+
 	tx := DB.Begin()
 
 	err := tx.Create(&e).Error
@@ -40,10 +49,22 @@ func (e *Empresa) CrearEmpresa() error {
 func (Empresa) ObtenerEmpresas() (empresas []Empresa, err error) {
 	empresas = []Empresa{}
 
-	err = DB.Find(&empresas).Error
+	err = DB.Preload("Usuario").Find(&empresas).Error
 	if err != nil {
 		return empresas, err
 	}
 
 	return empresas, nil
+}
+
+func (e *Empresa) Actualizar() error {
+
+	tx := DB.Begin()
+	if err := tx.Save(&e).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
 }

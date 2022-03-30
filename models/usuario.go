@@ -94,6 +94,7 @@ func (u Usuario) GetUsuarioByID() (usuario Usuario, err error) {
 
 	DB.Model(&usuario).Association("Grupos").Find(&usuario.Grupos)
 	DB.Model(&usuario).Association("Trabajos").Find(&usuario.Trabajos)
+	DB.Model(&usuario).Association("EmpresasPropias").Find(&usuario.EmpresasPropias)
 	return usuario, nil
 }
 
