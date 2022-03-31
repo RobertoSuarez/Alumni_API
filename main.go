@@ -43,7 +43,7 @@ func main() {
 
 	config.UseMount("/auth", api, controllers.NewControllerAuth())
 	config.UseMount("/usuarios", api, controllers.NewControllerUsuario())
-	config.UseMount("/ofertas", api, controllers.NewControllerOfertaLaboral())
+	config.UseMount("/empleos", api, controllers.NewEmpleo())
 	config.UseMount("/educacion", api, controllers.NewControllerEducacion())
 	config.UseMount("/grupos", api, controllers.NewGrupo())
 	config.UseMount("/empresas", api, controllers.NewEmpresa())

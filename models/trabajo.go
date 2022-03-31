@@ -6,7 +6,7 @@ import (
 )
 
 type Trabajo struct {
-	ID            uint64
+	ID            uint64 `json:"id" gorm:"primary_key"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
 	Area          string `json:"area" gorm:"size:200"`

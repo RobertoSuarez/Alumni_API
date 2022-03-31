@@ -21,6 +21,7 @@ type Empresa struct {
 	UsuarioCreadorID uint64    `json:"usuarioCreadorID"`
 	Usuario          *Usuario  `json:"usuario,omitempty" gorm:"foreignKey:UsuarioCreadorID"` // este es el usuario que ha creado esta empresa
 	Usuarios         []Usuario `json:"usuarios,omitempty" gorm:"many2many:usuario_empresas_asociadas;"`
+	Empleos          []Empleo  `json:"empleos" gorm:"foreignKey:EmpresaID"`
 }
 
 func (Empresa) TableName() string {
