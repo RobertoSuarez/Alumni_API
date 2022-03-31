@@ -35,8 +35,15 @@ func (user *Usuario) ConfigPath(router *fiber.App) *fiber.App {
 	router.Post("/avataraws", ValidarJWT, user.subirAvatarAWS)
 
 	router.Post("/agregar-grupo/:idusuario", user.AgergarGrupo)
-	router.Post("/agregar-trabajo/:idusuario", user.AgregarTrabajo)
 	router.Get("/:iduser", user.GetUsuarioByID)
+
+	// Trabajos
+	// Los endpoint trabajos van anidadatos al usuario, por el motivo de que
+	// solo un usuario tiene varios trabajos
+	router.Post("/:idusuario/trabajos", user.AgregarTrabajo)
+	router.Get("/:idusuario/trabajos", user.ObtenerTrabajosUsuario)
+	router.Put("/trabajos/:idtrabajo", user.ActualizarTrabajo)
+	router.Delete("/trabajos/:idtrabajo", user.EliminarTrabajo)
 
 	return router
 }
@@ -216,28 +223,6 @@ func (user *Usuario) subirAvatarAWS(c *fiber.Ctx) error {
 	return c.SendStatus(http.StatusOK)
 }
 
-//Agregar un nuevo trabajo al usuario que se pasa por el id
-func (u *Usuario) AgregarTrabajo(c *fiber.Ctx) error {
-	var trabajo models.Trabajo
-
-	idusuario := c.Params("idusuario")
-	ID, err := strconv.ParseInt(idusuario, 10, 64)
-	if err != nil {
-		return c.Status(400).SendString("Error en el ID")
-	}
-
-	if err = c.BodyParser(&trabajo); err != nil {
-		return c.Status(400).SendString("Error al convertir los datos")
-	}
-	fmt.Println("Trabajo: ", trabajo)
-	err = models.Usuario{ID: uint64(ID)}.AgregarTrabajo(trabajo)
-	if err != nil {
-		return c.Status(400).SendString("Error al registrar el trabajo")
-	}
-
-	return c.SendStatus(http.StatusOK)
-}
-
 // TODO: Actualizar usuario
 func (u *Usuario) Actualizar(c *fiber.Ctx) error {
 	usuario := models.Usuario{}
@@ -276,5 +261,83 @@ func (u *Usuario) ConfirmarCorreo(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).SendString(err.Error())
 	}
+	return c.SendStatus(http.StatusOK)
+}
+
+// Metodos para controlar los endpoint de trabajos
+
+//Agregar un nuevo trabajo al usuario que se pasa por el id
+func (u *Usuario) AgregarTrabajo(c *fiber.Ctx) error {
+	var trabajo models.Trabajo
+
+	idusuario := c.Params("idusuario")
+	ID, err := strconv.ParseInt(idusuario, 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	if err = c.BodyParser(&trabajo); err != nil {
+		return c.Status(400).SendString("Error al convertir los datos")
+	}
+	fmt.Println("Trabajo: ", trabajo)
+	err = models.Usuario{ID: uint64(ID)}.AgregarTrabajo(trabajo)
+	if err != nil {
+		return c.Status(400).SendString("Error al registrar el trabajo")
+	}
+
+	return c.SendStatus(http.StatusOK)
+}
+
+func (u *Usuario) ObtenerTrabajosUsuario(c *fiber.Ctx) error {
+	idusuario := c.Params("idusuario")
+	ID, err := strconv.ParseInt(idusuario, 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	trabajos, err := models.Trabajo{}.ObtenerTrabajosUsuario(uint64(ID))
+	if err != nil {
+		return c.Status(400).SendString("Error al obtener los trabajos " + err.Error())
+	}
+
+	return c.JSON(trabajos)
+}
+
+func (u *Usuario) ActualizarTrabajo(c *fiber.Ctx) error {
+	trabajo := models.Trabajo{}
+	idusuario := c.Params("idtrabajo")
+	ID, err := strconv.ParseInt(idusuario, 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	if err = c.BodyParser(&trabajo); err != nil {
+		return c.Status(400).SendString("Error al convertir los datos")
+	}
+
+	trabajo.ID = uint64(ID)
+
+	if err = trabajo.Actualizar(); err != nil {
+		return c.Status(400).SendString("Error: " + err.Error())
+	}
+
+	return c.JSON(trabajo)
+}
+
+func (u *Usuario) EliminarTrabajo(c *fiber.Ctx) error {
+	trabajo := models.Trabajo{}
+	idusuario := c.Params("idtrabajo")
+	ID, err := strconv.ParseInt(idusuario, 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	trabajo.ID = uint64(ID)
+
+	err = trabajo.Eliminar()
+	if err != nil {
+		return c.Status(400).SendString(err.Error())
+	}
+
 	return c.SendStatus(http.StatusOK)
 }
