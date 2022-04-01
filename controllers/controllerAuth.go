@@ -18,7 +18,7 @@ func (c *ControllerAuth) ConfigPath(app *fiber.App) *fiber.App {
 
 	app.Post("/login", c.LoginHandle)
 
-	app.Get("/users", ValidarJWT, func(c *fiber.Ctx) error {
+	app.Get("/users", ValidarJWT, gruposPermitios([]string{"estudiante"}), func(c *fiber.Ctx) error {
 		claims := c.Locals("claims").(*models.Claim)
 		_ = claims
 		//fmt.Println(claims)

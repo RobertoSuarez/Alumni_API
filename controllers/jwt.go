@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -29,7 +28,7 @@ func GenerarJWT(u models.Usuario) (string, error) {
 //Middleware
 func ValidarJWT(c *fiber.Ctx) error {
 
-	var claims models.Claim
+	claims := models.Claim{}
 
 	tokenstr := c.Get("Authorization", "")
 	if tokenstr == "" {
@@ -57,6 +56,25 @@ func ValidarJWT(c *fiber.Ctx) error {
 
 	c.Locals("claims", &claims)
 
-	fmt.Println(claims)
+	//fmt.Println(claims)
 	return c.Next()
+}
+
+//Esta funcion retorna una función con los grupos permitidos
+func gruposPermitios(grupos []string) func(*fiber.Ctx) error {
+
+	return func(c *fiber.Ctx) error {
+		claims := c.Locals("claims").(*models.Claim)
+
+		for _, permitido := range grupos {
+			for _, pertenece := range claims.Grupos {
+				if permitido == pertenece.Name {
+					//fmt.Println("si tienes acceso")
+					return c.Next()
+				}
+			}
+		}
+		//fmt.Println("No tienes acceso")
+		return c.Status(400).JSON(models.NewError("no tienes los privilegios requeridos"))
+	}
 }
