@@ -44,33 +44,29 @@ func (auth *ControllerAuth) GetUsuarios(c *fiber.Ctx) error {
 }
 
 func (auth *ControllerAuth) LoginHandle(c *fiber.Ctx) error {
-	var login models.Login
+	login := models.Login{}
 
 	err := c.BodyParser(&login)
 	if err != nil {
 		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al convertir los datos"})
 	}
 
-	//result := database.Database.Where("email = ? AND password = ?", login.Username, login.Password).First(&usuario)
+	usuario, err := models.Usuario{}.LoginUsuario(login)
+	if err != nil {
+		return c.Status(400).SendString(err.Error())
+	}
 
-	// usuario, err := database.LoginUsuario(login.Email, login.Password)
+	token, err := GenerarJWT(usuario)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al construir el token"})
+	}
 
-	// if err != nil {
-	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: err.Error()})
-	// }
+	usuario.Password = ""
 
-	// token, err := GenerarJWT(usuario)
-	// if err != nil {
-	// 	return c.Status(http.StatusBadRequest).JSON(&models.ErrorAPI{Mensaje: "Error al construir el token"})
-	// }
-	// usuario.Password = ""
+	respuestaLogin := models.RespuestaLogin{
+		Token:   token,
+		Usuario: usuario,
+	}
 
-	// respuestaLogin := models.RespuestaLogin{
-	// 	Token:   token,
-	// 	Usuario: usuario,
-	// }
-
-	//ClearTiposUsuarios(usuario)
-
-	return c.Status(http.StatusOK).JSON(nil)
+	return c.JSON(respuestaLogin)
 }

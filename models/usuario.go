@@ -55,19 +55,25 @@ func (Usuario) TableName() string {
 }
 
 // LoginUsuario revisar en la db que el usuario y contreseña existan.
-func (Usuario) LoginUsuario(email, password string) (*Usuario, error) {
+func (Usuario) LoginUsuario(login Login) (Usuario, error) {
 	usuario := Usuario{}
 
-	// Busca en la base de datos
-	result := DB.
-		Where("email = ? AND password = ?", email, password).First(&usuario)
+	// Busca el usuario con ese email
+	result := DB.Where("email = ?", login.Email).First(&usuario)
 
 	// controlamos el error
 	if result.Error != nil {
-		return nil, errors.New("no existe ese registro")
+		return usuario, errors.New("no existe el usuario")
 	}
 
-	return &usuario, nil
+	if usuario.Password != login.Password {
+		return usuario, errors.New("la contraseña es incorrecta")
+	}
+
+	// Traemos todos los grupos del usuario
+	DB.Model(&usuario).Association("Grupos").Find(&usuario.Grupos)
+
+	return usuario, nil
 	//Database.Preload("Admin").Preload("Alumni").Preload("TipoUsuario").First(&usuario)
 }
 

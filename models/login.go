@@ -6,6 +6,6 @@ type Login struct {
 }
 
 type RespuestaLogin struct {
-	Token    string `json:"token"`
-	*Usuario `json:"usuario"`
+	Token   string `json:"token"`
+	Usuario `json:"usuario"`
 }
