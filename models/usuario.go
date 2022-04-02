@@ -48,6 +48,8 @@ type Usuario struct {
 	Trabajos             []Trabajo `json:"trabajos,omitempty" gorm:"foreignKey:UsuarioID"`
 	EmpresasPropias      []Empresa `json:"empresasPropias,omitempty" gorm:"foreignKey:UsuarioCreadorID"`
 	EmpresasAsociadas    []Empresa `json:"empresaAsociadas,omitempty" gorm:"many2many:usuario_empresas_asociadas;"`
+	EmpleosGuardados     []Empleo  `json:"empleosGuardados" gorm:"many2many:empleos_guardado"`
+	EmpleosAplicados     []Empleo  `json:"empleosAplicados" gorm:"many2many:empleos_aplicados"`
 }
 
 func (Usuario) TableName() string {
@@ -213,4 +215,60 @@ func (u Usuario) ConfirmarCorreo() error {
 
 	tx.Commit()
 	return nil
+}
+
+// Guardar empleo
+// Usuaruio guarda un empleo
+func (u Usuario) GuardarEmpleo(id_empleo uint64) error {
+
+	tx := DB.Begin()
+
+	err := tx.Model(&u).Association("EmpleosGuardados").Append(&Empleo{ID: id_empleo})
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+// Listar todos los empleos guardados
+func (u Usuario) ObtenerEmpleosGuardados() ([]Empleo, error) {
+
+	empleos := []Empleo{}
+
+	err := DB.Model(&u).Association("EmpleosGuardados").Find(&empleos)
+	if err != nil {
+		return empleos, err
+	}
+
+	return empleos, nil
+}
+
+// Este usuario aplicara a un empleo
+func (u Usuario) AplicarEmpleo(id_empleo uint64) error {
+	tx := DB.Begin()
+
+	err := tx.Model(&u).Association("EmpleosAplicados").Append(&Empleo{ID: id_empleo})
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+// Listar todos los empleos a los cuales a aplicado
+func (u Usuario) ObtenerEmpleosAplicados() ([]Empleo, error) {
+
+	empleos := []Empleo{}
+
+	err := DB.Model(&u).Association("EmpleosAplicados").Find(&empleos)
+	if err != nil {
+		return empleos, err
+	}
+
+	return empleos, nil
 }
