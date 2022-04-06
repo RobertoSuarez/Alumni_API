@@ -19,6 +19,7 @@ func (e *Empleo) ConfigPath(app *fiber.App) *fiber.App {
 	app.Get("/", e.ListarEmpleos)
 	app.Post("/", e.Crear)
 	app.Put("/:id", e.Actualizar)
+	app.Post("/guardados", ValidarJWT, e.EmpleosGuardados)
 	return app
 }
 
@@ -71,4 +72,24 @@ func (e *Empleo) Actualizar(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(empleo)
+}
+
+// Trabajos guardados verificación, esto debe recibir todos los trabajos id,
+// y retornar los que si estan guardados
+func (Empleo) EmpleosGuardados(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(*models.Claim)
+	usuario := models.Usuario{ID: claims.IdUser}
+
+	ids := []uint64{}
+	err := c.BodyParser(&ids)
+	if err != nil {
+		return c.Status(400).SendString("No se pudo convertir los ids")
+	}
+
+	IDs, err := usuario.ObtenerEmpleosGuardadosIDVerificar(ids)
+	if err != nil {
+		return c.Status(400).SendString("Error al aplicar a este empleo")
+	}
+
+	return c.JSON(IDs)
 }

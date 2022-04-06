@@ -246,6 +246,18 @@ func (u Usuario) ObtenerEmpleosGuardados() ([]Empleo, error) {
 	return empleos, nil
 }
 
+// Obtener los empleos guardados, pero de la lista de empleos que me envia el cliente (request)
+func (u Usuario) ObtenerEmpleosGuardadosIDVerificar(ids []uint64) ([]uint64, error) {
+	empleosID := []uint64{}
+
+	err := DB.Model(&u).Where("empleo_id IN ?", ids).Select("empleo_id").Association("EmpleosGuardados").Find(&empleosID)
+	if err != nil {
+		return empleosID, err
+	}
+
+	return empleosID, nil
+}
+
 // Este usuario aplicara a un empleo
 func (u Usuario) AplicarEmpleo(id_empleo uint64) error {
 	tx := DB.Begin()
