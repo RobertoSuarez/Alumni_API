@@ -20,4 +20,6 @@ func InitDataBaseTable(config *viper.Viper) {
 	DB.AutoMigrate(&Grupo{})
 	DB.AutoMigrate(&Trabajo{})
 	DB.AutoMigrate(&Empresa{})
+	DB.AutoMigrate(&Area{})
+	DB.AutoMigrate(&Subarea{})
 }

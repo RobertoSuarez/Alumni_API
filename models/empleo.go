@@ -17,8 +17,8 @@ type Empleo struct {
 	Profesion                string    `json:"profesion" gorm:"size:200"`
 	Puesto                   string    `json:"puesto" gorm:"size:200"`
 	TipoEmplo                string    `json:"tipoEmpleo" gorm:"size:200"` //Modalidad de trabajo
-	Area                     string    `json:"area" gorm:"size:200"`       // Categoria
-	Subarea                  string    `json:"subarea" gorm:"size:200"`
+	SubareaID                uint64    `json:"subareaid"`
+	Subarea                  Subarea   `json:"subarea" gorm:"foreignKey:SubareaID"`
 	Sueldo                   string    `json:"sueldo" gorm:"size:200"`
 	TiempoExperiencia        string    `json:"tiempoExperiencia" gorm:"size:200"` // Los años de experiencia
 	Jornada                  string    `json:"jornada" gorm:"size:200"`
@@ -29,6 +29,7 @@ type Empleo struct {
 	Publicado                time.Time `json:"publicado"`
 	Borrador                 *bool     `json:"borrador" gorm:"default:false"`
 	EmpresaID                uint64    `json:"empresaid"`
+	//Area                     string    `json:"area" gorm:"size:200"`       // Categoria
 }
 
 func (Empleo) TableName() string {
@@ -60,8 +61,7 @@ func (e *Empleo) Actualizar() error {
 		Profesion:                e.Profesion,
 		Puesto:                   e.Puesto,
 		TipoEmplo:                e.TipoEmplo,
-		Area:                     e.Area,
-		Subarea:                  e.Subarea,
+		SubareaID:                e.SubareaID,
 		Sueldo:                   e.Sueldo,
 		TiempoExperiencia:        e.TiempoExperiencia,
 		Jornada:                  e.Jornada,
@@ -70,6 +70,7 @@ func (e *Empleo) Actualizar() error {
 		Ciudad:                   e.Ciudad,
 		PostulanteDiscapacidad:   e.PostulanteDiscapacidad,
 		Borrador:                 e.Borrador,
+		//Area:                     e.Area,
 	})
 
 	if result.Error != nil {
@@ -77,7 +78,7 @@ func (e *Empleo) Actualizar() error {
 		return result.Error
 	}
 
-	tx.First(&e, e.ID)
+	tx.Preload("Subarea.Area").First(&e, e.ID)
 
 	tx.Commit()
 	return nil
@@ -88,7 +89,7 @@ func (e *Empleo) Actualizar() error {
 // Listar los empleos
 func (Empleo) ObtenerTodos() (empleos []Empleo, err error) {
 
-	result := DB.Where("borrador = false").Find(&empleos)
+	result := DB.Where("borrador = false").Preload("Subarea.Area").Find(&empleos)
 	if result.Error != nil {
 		return empleos, result.Error
 	}
