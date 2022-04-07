@@ -13,3 +13,15 @@ type Area struct {
 func (Area) TableName() string {
 	return "area"
 }
+
+// Listar las areas
+func (Area) ObtenerAreas() ([]Area, error) {
+	areas := []Area{}
+
+	result := DB.Find(&areas)
+	if result.Error != nil {
+		return areas, result.Error
+	}
+
+	return areas, nil
+}
