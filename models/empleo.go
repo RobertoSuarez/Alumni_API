@@ -96,3 +96,14 @@ func (Empleo) ObtenerTodos() (empleos []Empleo, err error) {
 
 	return empleos, nil
 }
+
+// Obtener empleo por el id
+func (e *Empleo) ObtenerEmpleoByID() error {
+
+	result := DB.Model(&e).Preload("Subarea.Area").First(&e)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}

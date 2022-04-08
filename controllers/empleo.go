@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/http"
 	"strconv"
 
 	"github.com/RobertoSuarez/apialumni/models"
@@ -19,6 +20,7 @@ func (e *Empleo) ConfigPath(app *fiber.App) *fiber.App {
 	app.Get("/", e.ListarEmpleos)
 	app.Post("/", e.Crear)
 	app.Put("/:id", e.Actualizar)
+	app.Get("/:id", e.ObtenerEmpleoByID)
 	app.Post("/guardados", ValidarJWT, e.EmpleosGuardados)
 	return app
 }
@@ -92,4 +94,21 @@ func (Empleo) EmpleosGuardados(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(IDs)
+}
+
+// Obtener empleo por el id
+func (Empleo) ObtenerEmpleoByID(c *fiber.Ctx) error {
+	idempleo := c.Params("id")
+	ID, err := strconv.ParseInt(idempleo, 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+	empleo := models.Empleo{ID: uint64(ID)}
+
+	err = empleo.ObtenerEmpleoByID()
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(err)
+	}
+
+	return c.JSON(empleo)
 }
