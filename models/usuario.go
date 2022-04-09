@@ -219,18 +219,21 @@ func (u Usuario) ConfirmarCorreo() error {
 
 // Guardar empleo
 // Usuaruio guarda un empleo
-func (u Usuario) GuardarEmpleo(id_empleo uint64) error {
+func (u Usuario) GuardarEmpleo(id_empleo uint64) (Empleo, error) {
+	empleo := Empleo{ID: id_empleo}
 
 	tx := DB.Begin()
 
-	err := tx.Model(&u).Association("EmpleosGuardados").Append(&Empleo{ID: id_empleo})
+	err := tx.Model(&u).Association("EmpleosGuardados").Append(&empleo)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return empleo, err
 	}
 
+	tx.Model(&empleo).Preload("Area").Preload("Subarea").First(&empleo)
+
 	tx.Commit()
-	return nil
+	return empleo, nil
 }
 
 // Listar todos los empleos guardados
@@ -238,7 +241,7 @@ func (u Usuario) ObtenerEmpleosGuardados() ([]Empleo, error) {
 
 	empleos := []Empleo{}
 
-	err := DB.Model(&u).Association("EmpleosGuardados").Find(&empleos)
+	err := DB.Model(&u).Preload("Area").Preload("Subarea").Association("EmpleosGuardados").Find(&empleos)
 	if err != nil {
 		return empleos, err
 	}

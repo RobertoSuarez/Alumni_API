@@ -19,9 +19,13 @@ func (e *Empleo) ConfigPath(app *fiber.App) *fiber.App {
 
 	app.Get("/", e.ListarEmpleos)
 	app.Post("/", e.Crear)
+
+	app.Post("/guardados-id", ValidarJWT, e.EmpleosGuardados) // Empleos guardados pero solo retorna un slice de ids
+	app.Get("/guardados", ValidarJWT, e.ObtenerEmpleosGuardados)
+	app.Post("/:id/guardar", ValidarJWT, e.GuardarEmpleoParaUsuario) // el empleo se guardara para el usuario
+
 	app.Put("/:id", e.Actualizar)
 	app.Get("/:id", e.ObtenerEmpleoByID)
-	app.Post("/guardados", ValidarJWT, e.EmpleosGuardados)
 	return app
 }
 
@@ -77,7 +81,8 @@ func (e *Empleo) Actualizar(c *fiber.Ctx) error {
 }
 
 // Trabajos guardados verificación, esto debe recibir todos los trabajos id,
-// y retornar los que si estan guardados
+// y retornar los que si estan guardados, se debe tener claro que este endpoint
+// no guarda ningun trabajo, solo verifica si el usuario ya lo tiene guardado
 func (Empleo) EmpleosGuardados(c *fiber.Ctx) error {
 	claims := c.Locals("claims").(*models.Claim)
 	usuario := models.Usuario{ID: claims.IdUser}
@@ -111,4 +116,39 @@ func (Empleo) ObtenerEmpleoByID(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(empleo)
+}
+
+// GuardarEmpleoParaUsuario Relaciona el usuario del token con
+// el id del empleo que se pasa
+func (Empleo) GuardarEmpleoParaUsuario(c *fiber.Ctx) error {
+	// Obtenemos los privilegio y el id como parametro
+	claims := c.Locals("claims").(*models.Claim)
+	usuario := models.Usuario{ID: claims.IdUser}
+	idempleo := c.Params("id")
+	ID, err := strconv.ParseInt(idempleo, 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	// Ingresamos la relación
+	empleo, err := usuario.GuardarEmpleo(uint64(ID))
+	if err != nil {
+		return c.Status(400).SendString("No se puddo guardar")
+	}
+
+	return c.JSON(empleo)
+}
+
+// ObtenerEmpleosGuardados obtien los emplos guardados pero todo el objeto
+func (Empleo) ObtenerEmpleosGuardados(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(*models.Claim)
+
+	usuario := models.Usuario{ID: claims.IdUser}
+
+	empleos, err := usuario.ObtenerEmpleosGuardados()
+	if err != nil {
+		return c.Status(400).SendString("Error al consultar los empleos guardados")
+	}
+
+	return c.JSON(empleos)
 }

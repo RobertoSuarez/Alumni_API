@@ -27,7 +27,7 @@ func (user *Usuario) ConfigPath(router *fiber.App) *fiber.App {
 	router.Put("/:id", user.Actualizar)
 
 	// Administración de los empleos
-	router.Post("/empleos/guardados/:idempleo", ValidarJWT, user.GuardarEmpleo)
+	//router.Post("/empleos/guardados/:idempleo", ValidarJWT, user.GuardarEmpleo)
 	router.Get("/empleos/guardados", ValidarJWT, user.ObtenerEmpleosGuardados)
 	router.Post("/empleos/aplicar/:idempleo", ValidarJWT, user.AplicarEmpleo)
 	router.Get("/empleos/aplicar", ValidarJWT, user.ObtenerEmpleosAplicados)
@@ -347,24 +347,6 @@ func (u *Usuario) EliminarTrabajo(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(http.StatusOK)
-}
-
-// Administración de los empleos
-func (Usuario) GuardarEmpleo(c *fiber.Ctx) error {
-	claims := c.Locals("claims").(*models.Claim)
-	usuario := models.Usuario{ID: claims.IdUser}
-	idempleo := c.Params("idempleo")
-	ID, err := strconv.ParseInt(idempleo, 10, 64)
-	if err != nil {
-		return c.Status(400).SendString("Error en el ID")
-	}
-
-	err = usuario.GuardarEmpleo(uint64(ID))
-	if err != nil {
-		return c.Status(400).SendString("No se puddo guardar")
-	}
-
-	return c.Status(http.StatusOK).SendString("Perfecto empleo guardado para este usuario")
 }
 
 func (Usuario) ObtenerEmpleosGuardados(c *fiber.Ctx) error {
