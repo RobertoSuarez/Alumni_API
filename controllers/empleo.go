@@ -23,6 +23,7 @@ func (e *Empleo) ConfigPath(app *fiber.App) *fiber.App {
 	app.Post("/guardados-id", ValidarJWT, e.EmpleosGuardados) // Empleos guardados pero solo retorna un slice de ids
 	app.Get("/guardados", ValidarJWT, e.ObtenerEmpleosGuardados)
 	app.Post("/:id/guardar", ValidarJWT, e.GuardarEmpleoParaUsuario) // el empleo se guardara para el usuario
+	app.Delete("/:id/guardar", ValidarJWT, e.EliminarEmpleoGuardado) // Remover el empleo guardado por el usuario
 
 	app.Put("/:id", e.Actualizar)
 	app.Get("/:id", e.ObtenerEmpleoByID)
@@ -151,4 +152,22 @@ func (Empleo) ObtenerEmpleosGuardados(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(empleos)
+}
+
+func (Empleo) EliminarEmpleoGuardado(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(*models.Claim)
+
+	ID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	usuario := models.Usuario{ID: claims.IdUser}
+
+	err = usuario.EliminarEmpleoGuardado(uint64(ID))
+	if err != nil {
+		return c.Status(400).SendString("No se puedo eliminar")
+	}
+
+	return c.SendStatus(200)
 }

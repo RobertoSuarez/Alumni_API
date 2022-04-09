@@ -249,6 +249,20 @@ func (u Usuario) ObtenerEmpleosGuardados() ([]Empleo, error) {
 	return empleos, nil
 }
 
+// Eliminar empleo guardado
+func (u Usuario) EliminarEmpleoGuardado(id_empleo uint64) error {
+	tx := DB.Begin()
+
+	err := tx.Model(&u).Association("EmpleosGuardados").Delete(&Empleo{ID: id_empleo})
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
 // Obtener los empleos guardados, pero de la lista de empleos que me envia el cliente (request)
 func (u Usuario) ObtenerEmpleosGuardadosIDVerificar(ids []uint64) ([]uint64, error) {
 	empleosID := []uint64{}
