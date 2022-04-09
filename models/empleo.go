@@ -17,7 +17,9 @@ type Empleo struct {
 	Profesion                string    `json:"profesion" gorm:"size:200"`
 	Puesto                   string    `json:"puesto" gorm:"size:200"`
 	TipoEmplo                string    `json:"tipoEmpleo" gorm:"size:200"` //Modalidad de trabajo
-	SubareaID                uint64    `json:"subareaid"`
+	AreaID                   uint64    `json:"areaid,omitempty"`           // se realaciona con la tabla area
+	Area                     Area      `json:"area" gorm:"foreignKey:AreaID"`
+	SubareaID                uint64    `json:"subareaid,omitempty"` // se relaciona con la tabla subarea
 	Subarea                  Subarea   `json:"subarea" gorm:"foreignKey:SubareaID"`
 	Sueldo                   string    `json:"sueldo" gorm:"size:200"`
 	TiempoExperiencia        string    `json:"tiempoExperiencia" gorm:"size:200"` // Los años de experiencia
@@ -48,6 +50,8 @@ func (e *Empleo) Crear() error {
 		return result.Error
 	}
 
+	DB.Model(&e).Preload("Area").Preload("Subarea").First(&e)
+
 	return nil
 }
 
@@ -61,6 +65,7 @@ func (e *Empleo) Actualizar() error {
 		Profesion:                e.Profesion,
 		Puesto:                   e.Puesto,
 		TipoEmplo:                e.TipoEmplo,
+		AreaID:                   e.AreaID,
 		SubareaID:                e.SubareaID,
 		Sueldo:                   e.Sueldo,
 		TiempoExperiencia:        e.TiempoExperiencia,
@@ -78,7 +83,9 @@ func (e *Empleo) Actualizar() error {
 		return result.Error
 	}
 
-	tx.Preload("Subarea.Area").First(&e, e.ID)
+	tx.Preload("Area").Preload("Subarea").First(&e, e.ID)
+	e.AreaID = 0
+	e.SubareaID = 0
 
 	tx.Commit()
 	return nil
@@ -89,7 +96,7 @@ func (e *Empleo) Actualizar() error {
 // Listar los empleos
 func (Empleo) ObtenerTodos() (empleos []Empleo, err error) {
 
-	result := DB.Where("borrador = false").Preload("Subarea.Area").Find(&empleos)
+	result := DB.Where("borrador = false").Preload("Area").Preload("Subarea").Find(&empleos)
 	if result.Error != nil {
 		return empleos, result.Error
 	}
@@ -100,10 +107,12 @@ func (Empleo) ObtenerTodos() (empleos []Empleo, err error) {
 // Obtener empleo por el id
 func (e *Empleo) ObtenerEmpleoByID() error {
 
-	result := DB.Model(&e).Preload("Subarea.Area").First(&e)
+	result := DB.Model(&e).Preload("Area").Preload("Subarea").First(&e)
 	if result.Error != nil {
 		return result.Error
 	}
+	e.AreaID = 0
+	e.SubareaID = 0
 
 	return nil
 }

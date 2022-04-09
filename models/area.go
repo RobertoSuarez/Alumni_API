@@ -3,11 +3,12 @@ package models
 import "time"
 
 type Area struct {
-	ID          uint64 `json:"id" gorm:"primary_key"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Titulo      string `json:"titulo" gorm:"size:200"`
-	Descripcion string `json:"descripcion" gorm:"size:900"`
+	ID          uint64    `json:"id" gorm:"primary_key"`
+	CreatedAt   time.Time `json:"createdat"`
+	UpdatedAt   time.Time `json:"updatedt"`
+	Titulo      string    `json:"titulo" gorm:"size:200"`
+	Descripcion string    `json:"descripcion" gorm:"size:900"`
+	SubAreas    []Subarea `json:"subareas,omitempty" gorm:"foreignKey:AreaID"`
 }
 
 func (Area) TableName() string {

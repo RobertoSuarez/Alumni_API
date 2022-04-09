@@ -3,13 +3,13 @@ package models
 import "time"
 
 type Subarea struct {
-	ID          uint64 `json:"id" gorm:"primary_key"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	Titulo      string `json:"titulo" gorm:"size:200"`
-	Descripcion string `json:"descripcion" gorm:"size:900"`
-	AreaID      uint64 `json:"areaid,omitempty"`
-	Area        *Area  `json:"area,omitempty" gorm:"foreignKey:AreaID"`
+	ID          uint64    `json:"id" gorm:"primary_key"`
+	CreatedAt   time.Time `json:"createdat"`
+	UpdatedAt   time.Time `json:"updatedt"`
+	Titulo      string    `json:"titulo" gorm:"size:200"`
+	Descripcion string    `json:"descripcion" gorm:"size:900"`
+	AreaID      uint64    `json:"areaid,omitempty"`
+	Area        Area      `json:"-" gorm:"foreignKey:AreaID"`
 }
 
 func (Subarea) TableName() string {
