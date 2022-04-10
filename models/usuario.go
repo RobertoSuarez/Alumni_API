@@ -301,3 +301,27 @@ func (u Usuario) ObtenerEmpleosAplicados() ([]Empleo, error) {
 
 	return empleos, nil
 }
+
+// Eliminar empleos aplicados
+func (u Usuario) EliminarEmpleoAplicado(id_empleo uint64) error {
+	tx := DB.Begin()
+
+	err := tx.Model(&u).Association("EmpleosAplicados").Delete(&Empleo{ID: id_empleo})
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (u Usuario) EstadoAplicacion(id_empleo uint64) bool {
+
+	count := DB.Model(&u).Where("empleo_id = ?", id_empleo).Association("EmpleosAplicados").Count()
+
+	fmt.Println("Cantidad de Empleos asociados pero con el where: ", count)
+
+	return count == 1
+
+}

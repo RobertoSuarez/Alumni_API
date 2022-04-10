@@ -28,9 +28,9 @@ func (user *Usuario) ConfigPath(router *fiber.App) *fiber.App {
 
 	// Administración de los empleos
 	//router.Post("/empleos/guardados/:idempleo", ValidarJWT, user.GuardarEmpleo)
-	router.Get("/empleos/guardados", ValidarJWT, user.ObtenerEmpleosGuardados)
-	router.Post("/empleos/aplicar/:idempleo", ValidarJWT, user.AplicarEmpleo)
-	router.Get("/empleos/aplicar", ValidarJWT, user.ObtenerEmpleosAplicados)
+	// router.Get("/empleos/guardados", ValidarJWT, user.ObtenerEmpleosGuardados)
+	// router.Post("/empleos/aplicar/:idempleo", ValidarJWT, user.AplicarEmpleo)
+	// router.Get("/empleos/aplicar", ValidarJWT, user.ObtenerEmpleosAplicados)
 
 	// confirmar correos y subir fotos
 	router.Post("/confirmar-correo/:id", user.ConfirmarCorreo)

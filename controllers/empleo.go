@@ -25,6 +25,12 @@ func (e *Empleo) ConfigPath(app *fiber.App) *fiber.App {
 	app.Post("/:id/guardar", ValidarJWT, e.GuardarEmpleoParaUsuario) // el empleo se guardara para el usuario
 	app.Delete("/:id/guardar", ValidarJWT, e.EliminarEmpleoGuardado) // Remover el empleo guardado por el usuario
 
+	// Aplicaciónes de empleos
+	app.Get("/aplicar", ValidarJWT, e.ObtenerEmpleosAplicados)
+	app.Post("/:id/aplicar", ValidarJWT, e.AplicarEmpleo)              // aplica a un empleo, este metodo anteriormente estaba en usuario
+	app.Delete("/:id/aplicar", ValidarJWT, e.EliminarAplicacionEmpleo) // Eliminar aplicación de empleo
+	app.Post("/:id/aplicar/estado", ValidarJWT, e.EstadoAplicacion)    // Revisa el estado de la aplicación de empleo
+
 	app.Put("/:id", e.Actualizar)
 	app.Get("/:id", e.ObtenerEmpleoByID)
 	return app
@@ -141,6 +147,7 @@ func (Empleo) GuardarEmpleoParaUsuario(c *fiber.Ctx) error {
 }
 
 // ObtenerEmpleosGuardados obtien los emplos guardados pero todo el objeto
+// Estos empleos son los guardados por el usuario
 func (Empleo) ObtenerEmpleosGuardados(c *fiber.Ctx) error {
 	claims := c.Locals("claims").(*models.Claim)
 
@@ -154,6 +161,7 @@ func (Empleo) ObtenerEmpleosGuardados(c *fiber.Ctx) error {
 	return c.JSON(empleos)
 }
 
+// Eliminar empleo guardado por el usuario
 func (Empleo) EliminarEmpleoGuardado(c *fiber.Ctx) error {
 	claims := c.Locals("claims").(*models.Claim)
 
@@ -170,4 +178,72 @@ func (Empleo) EliminarEmpleoGuardado(c *fiber.Ctx) error {
 	}
 
 	return c.SendStatus(200)
+}
+
+func (Empleo) AplicarEmpleo(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(*models.Claim)
+	usuario := models.Usuario{ID: claims.IdUser}
+
+	ID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	err = usuario.AplicarEmpleo(uint64(ID))
+	if err != nil {
+		return c.Status(400).SendString("Error al aplicar a este empleo")
+	}
+
+	return c.Status(http.StatusOK).SendString("Perfecto ya aplicastes para este trabajo")
+}
+
+// Listar todos los empleos aplicados
+func (Empleo) ObtenerEmpleosAplicados(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(*models.Claim)
+	usuario := models.Usuario{ID: claims.IdUser}
+
+	empleos, err := usuario.ObtenerEmpleosAplicados()
+	if err != nil {
+		return c.Status(400).SendString("Error al consultar los empleos aplicados")
+	}
+
+	return c.JSON(empleos)
+}
+
+// Eliminar aplicación de empleo
+func (Empleo) EliminarAplicacionEmpleo(c *fiber.Ctx) error {
+	claims := c.Locals("claims").(*models.Claim)
+	usuario := models.Usuario{ID: claims.IdUser}
+
+	ID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	err = usuario.EliminarEmpleoAplicado(uint64(ID))
+	if err != nil {
+		return c.Status(400).SendString("Empleo removido correctamente")
+	}
+
+	return c.SendStatus(http.StatusOK)
+}
+
+// Este endpoint revisara si el usuario ha aplicado al empleo,
+// si en la base de dato no existe ningun registro de estos, retorna un false, como no aplicado
+// en caso de que si exista un registro, se retorna un true, como si aplicado
+func (Empleo) EstadoAplicacion(c *fiber.Ctx) error {
+	estado := struct {
+		Estado bool `json:"estado"`
+	}{}
+	claims := c.Locals("claims").(*models.Claim)
+	usuario := models.Usuario{ID: claims.IdUser}
+
+	ID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	estado.Estado = usuario.EstadoAplicacion(uint64(ID))
+
+	return c.JSON(estado)
 }
