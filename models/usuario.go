@@ -24,6 +24,8 @@ var UsuarioCamposDB = []string{
 	"RoleCuenta",
 }
 
+const datos = "id,created_at,updated_at,identificacion_tipo,numero_identificacion,nombres,apellidos,email,nacimiento,phone,avatar,descripcion,is_super,email_confirmado,genero,fecha_graduacion,nivel_academico,es_discapacitado"
+
 type Usuario struct {
 	ID                   uint64 `json:"id" gorm:"primary_key"`
 	CreatedAt            time.Time
@@ -33,7 +35,7 @@ type Usuario struct {
 	Nombres              string    `json:"nombres" gorm:"size:200"`
 	Apellidos            string    `json:"apellidos" gorm:"size:200"`
 	Email                string    `json:"email" gorm:"not null;unique"`
-	Password             string    `json:"password,omitempty" gorm:"size:200;not null"`
+	Password             string    `json:"password" gorm:"size:200;not null"`
 	Nacimiento           time.Time `json:"nacimiento"`
 	Phone                string    `json:"phone"`
 	Avatar               string    `json:"avatar"`
@@ -82,8 +84,7 @@ func (Usuario) LoginUsuario(login Login) (Usuario, error) {
 // Obtener todos los usuario registrado en la base de datos
 func (Usuario) GetAll() (usuarios []Usuario, err error) {
 	usuarios = []Usuario{}
-
-	result := DB.Find(&usuarios)
+	result := DB.Select(datos).Find(&usuarios)
 	if result.Error != nil {
 		fmt.Println(result.Error)
 		return usuarios, result.Error
@@ -170,6 +171,7 @@ func (u *Usuario) Actualizar() error {
 	tx := DB.Begin()
 	//campos := "identificacion_tipo,numero_identificacion,nombres,apellidos,nacimiento,phone,descripcion,genero,fecha_graduacion,nivel_academico,es_discapacitado"
 	// Campos que se actualizaran en la tabla
+	// se actualizaran los datos, no relevantes
 	err := tx.Model(&u).Updates(Usuario{
 		IdentificacionTipo:   u.IdentificacionTipo,
 		NumeroIdentificacion: u.NumeroIdentificacion,
@@ -177,7 +179,6 @@ func (u *Usuario) Actualizar() error {
 		Apellidos:            u.Apellidos,
 		Nacimiento:           u.Nacimiento,
 		Phone:                u.Phone,
-		Descripcion:          u.Descripcion,
 		Genero:               u.Genero,
 		FechaGraduacion:      u.FechaGraduacion,
 		NivelAcademico:       u.NivelAcademico,
@@ -189,6 +190,23 @@ func (u *Usuario) Actualizar() error {
 	}
 
 	tx.First(&u, u.ID)
+
+	tx.Commit()
+	return nil
+}
+
+// Actualizar la descripción
+func (u Usuario) ActualizarDescripcion() error {
+	tx := DB.Begin()
+
+	result := tx.Model(&u).Updates(Usuario{
+		Descripcion: u.Descripcion,
+	})
+
+	if result.Error != nil {
+		tx.Rollback()
+		return result.Error
+	}
 
 	tx.Commit()
 	return nil

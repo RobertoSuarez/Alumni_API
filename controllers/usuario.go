@@ -24,7 +24,9 @@ func (user *Usuario) ConfigPath(router *fiber.App) *fiber.App {
 	router.Get("/", user.ObtenerUsuarios)
 	router.Post("/", user.CrearUsuario)
 	router.Delete("/", user.EliminarUsuario)
-	router.Put("/:id", user.Actualizar)
+	router.Put("/:id/datos", user.ActualizarDatos)
+	router.Put("/:id/descripcion", user.ActualizarDescripcion)
+	router.Get("/:iduser", user.GetUsuarioByID)
 
 	// Administración de los empleos
 	//router.Post("/empleos/guardados/:idempleo", ValidarJWT, user.GuardarEmpleo)
@@ -36,13 +38,12 @@ func (user *Usuario) ConfigPath(router *fiber.App) *fiber.App {
 	router.Post("/confirmar-correo/:id", user.ConfirmarCorreo)
 
 	router.Get("/avatar/:filename", user.GetAvatarUsuario)
-	router.Post("/avatar", ValidarJWT, user.subirAvatar)
+	//router.Post("/avatar", ValidarJWT, user.subirAvatar)
 
 	router.Get("/avataraws/:filename", user.GetAvatarUsuarioAWS)
 	router.Post("/avataraws", ValidarJWT, user.subirAvatarAWS)
 
 	router.Post("/agregar-grupo/:idusuario", user.AgergarGrupo)
-	router.Get("/:iduser", user.GetUsuarioByID)
 
 	// Trabajos
 	// Los endpoint trabajos van anidadatos al usuario, por el motivo de que
@@ -231,7 +232,7 @@ func (user *Usuario) subirAvatarAWS(c *fiber.Ctx) error {
 }
 
 // TODO: Actualizar usuario
-func (u *Usuario) Actualizar(c *fiber.Ctx) error {
+func (u *Usuario) ActualizarDatos(c *fiber.Ctx) error {
 	usuario := models.Usuario{}
 	idusuario := c.Params("id")
 	ID, err := strconv.ParseInt(idusuario, 10, 64)
@@ -251,6 +252,29 @@ func (u *Usuario) Actualizar(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(usuario)
+}
+
+// endpoint para actualizar la descripción de un usuario
+func (u *Usuario) ActualizarDescripcion(c *fiber.Ctx) error {
+	ID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+	usuario := models.Usuario{}
+
+	err = c.BodyParser(&usuario)
+	if err != nil {
+		return c.Status(400).SendString("No se pudieron convertir los datos del request")
+	}
+
+	usuario.ID = uint64(ID)
+
+	err = usuario.ActualizarDescripcion()
+	if err != nil {
+		return c.Status(400).SendString("Error al actualizar la descripción")
+	}
+
+	return c.SendStatus(http.StatusOK)
 }
 
 // confirma un usuario, que verifica su usuario correo
