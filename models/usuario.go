@@ -46,10 +46,10 @@ type Usuario struct {
 	FechaGraduacion      time.Time `json:"fechaGraduacion"`
 	NivelAcademico       string    `json:"nivelAcademico"`
 	EsDiscapacitado      bool      `json:"esDiscapacitado"`
-	Grupos               []Grupo   `json:"grupos,omitempty" gorm:"many2many:usuario_grupos;"`
-	Trabajos             []Trabajo `json:"trabajos,omitempty" gorm:"foreignKey:UsuarioID"`
-	EmpresasPropias      []Empresa `json:"empresasPropias,omitempty" gorm:"foreignKey:UsuarioCreadorID"`
-	EmpresasAsociadas    []Empresa `json:"empresaAsociadas,omitempty" gorm:"many2many:usuario_empresas_asociadas;"`
+	Grupos               []Grupo   `json:"grupos" gorm:"many2many:usuario_grupos;"`
+	Trabajos             []Trabajo `json:"trabajos" gorm:"foreignKey:UsuarioID"`
+	EmpresasPropias      []Empresa `json:"empresasPropias" gorm:"foreignKey:UsuarioCreadorID"`
+	EmpresasAsociadas    []Empresa `json:"empresaAsociadas" gorm:"many2many:usuario_empresas_asociadas;"`
 	EmpleosGuardados     []Empleo  `json:"empleosGuardados" gorm:"many2many:empleos_guardado"`
 	EmpleosAplicados     []Empleo  `json:"empleosAplicados" gorm:"many2many:empleos_aplicados"`
 }
