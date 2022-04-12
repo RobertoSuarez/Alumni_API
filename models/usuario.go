@@ -96,7 +96,7 @@ func (Usuario) GetAll() (usuarios []Usuario, err error) {
 // GetUsuarioByID retorna el usuario mediante el ID, el ID se
 // debe pasar con el objeto que lo invoca.
 func (u Usuario) GetUsuarioByID() (usuario Usuario, err error) {
-	err = DB.First(&usuario, u.ID).Error
+	err = DB.Omit("Password").First(&usuario, u.ID).Error
 	if err != nil {
 		return usuario, err
 	}
