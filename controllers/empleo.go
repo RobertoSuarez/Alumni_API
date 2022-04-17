@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -39,7 +40,40 @@ func (e *Empleo) ConfigPath(app *fiber.App) *fiber.App {
 // obtener todos los empleos registrador
 func (e *Empleo) ListarEmpleos(c *fiber.Ctx) error {
 
-	empleos, err := models.Empleo{}.ObtenerTodos()
+	maps := make(map[string]interface{})
+
+	titulo := c.Query("titulo")
+	if len(titulo) > 0 {
+		maps["titulo"] = titulo //[]string{"Adminstrador de empresa", "Desarrollador de software"}
+	}
+
+	ciudad := c.Query("ciudad")
+	if len(ciudad) > 0 {
+		maps["ciudad"] = ciudad
+	}
+
+	area := c.Query("area_id")
+	if len(area) > 0 {
+		maps["area_id"] = area
+	}
+
+	page, _ := strconv.Atoi(c.Query("page", "0"))
+	if page == 0 {
+		page = 1
+	}
+
+	pageSize, _ := strconv.Atoi(c.Query("page_size", "0"))
+	switch {
+	case pageSize > 100:
+		pageSize = 100
+	case pageSize <= 0:
+		pageSize = 10
+	}
+	fmt.Println(page, pageSize)
+	// cantidad de registros a saltar.
+	offset := (page - 1) * pageSize
+
+	empleos, err := models.Empleo{}.ObtenerTodos(offset, pageSize, maps)
 	if err != nil {
 		return c.Status(400).SendString(err.Error())
 	}

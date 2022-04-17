@@ -94,9 +94,15 @@ func (e *Empleo) Actualizar() error {
 // Cambiar estado del empleo
 
 // Listar los empleos
-func (Empleo) ObtenerTodos() (empleos []Empleo, err error) {
+// Fala buscar por palabras claves y ciudad
+func (Empleo) ObtenerTodos(offset int, pageSize int, maps interface{}) (empleos []Empleo, err error) {
 
-	result := DB.Where("borrador = false").Preload("Area").Preload("Subarea").Find(&empleos)
+	result := DB.
+		Where(maps).
+		Preload("Area").
+		Preload("Subarea").
+		Order("created_at desc").
+		Offset(offset).Limit(pageSize).Find(&empleos)
 	if result.Error != nil {
 		return empleos, result.Error
 	}
