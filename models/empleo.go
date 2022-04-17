@@ -95,9 +95,10 @@ func (e *Empleo) Actualizar() error {
 
 // Listar los empleos
 // Fala buscar por palabras claves y ciudad
-func (Empleo) ObtenerTodos(offset int, pageSize int, maps interface{}) (empleos []Empleo, err error) {
+func (Empleo) ObtenerTodos(offset int, pageSize int, maps interface{}, title string) (empleos []Empleo, err error) {
 
 	result := DB.
+		Where("titulo LIKE ?", "%"+title+"%").
 		Where(maps).
 		Preload("Area").
 		Preload("Subarea").

@@ -43,9 +43,9 @@ func (e *Empleo) ListarEmpleos(c *fiber.Ctx) error {
 	maps := make(map[string]interface{})
 
 	titulo := c.Query("titulo")
-	if len(titulo) > 0 {
-		maps["titulo"] = titulo //[]string{"Adminstrador de empresa", "Desarrollador de software"}
-	}
+	// if len(titulo) > 0 {
+	// 	maps["titulo"] = titulo //[]string{"Adminstrador de empresa", "Desarrollador de software"}
+	// }
 
 	ciudad := c.Query("ciudad")
 	if len(ciudad) > 0 {
@@ -73,7 +73,7 @@ func (e *Empleo) ListarEmpleos(c *fiber.Ctx) error {
 	// cantidad de registros a saltar.
 	offset := (page - 1) * pageSize
 
-	empleos, err := models.Empleo{}.ObtenerTodos(offset, pageSize, maps)
+	empleos, err := models.Empleo{}.ObtenerTodos(offset, pageSize, maps, titulo)
 	if err != nil {
 		return c.Status(400).SendString(err.Error())
 	}
