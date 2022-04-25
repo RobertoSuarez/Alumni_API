@@ -24,4 +24,5 @@ func InitDataBaseTable(config *viper.Viper) {
 	DB.AutoMigrate(&Subarea{})
 	DB.AutoMigrate(&Provincia{})
 	DB.AutoMigrate(&Ciudad{})
+	DB.AutoMigrate(&LogBusquedas{})
 }

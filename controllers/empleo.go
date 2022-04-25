@@ -18,8 +18,9 @@ func NewEmpleo() *Empleo {
 
 func (e *Empleo) ConfigPath(app *fiber.App) *fiber.App {
 
-	app.Get("/", e.ListarEmpleos)
+	app.Get("/", e.Logs_busquedas, e.ListarEmpleos)
 	app.Post("/", e.Crear)
+	app.Get("/autocompletado", e.EmpleoAutocompletado)
 
 	app.Post("/guardados-id", ValidarJWT, e.EmpleosGuardados) // Empleos guardados pero solo retorna un slice de ids
 	app.Get("/guardados", ValidarJWT, e.ObtenerEmpleosGuardados)
@@ -37,7 +38,8 @@ func (e *Empleo) ConfigPath(app *fiber.App) *fiber.App {
 	return app
 }
 
-// obtener todos los empleos registrador
+// obtener todos los empleos registrador, este endpoint se
+// utiliza en el buscador de la app
 func (e *Empleo) ListarEmpleos(c *fiber.Ctx) error {
 
 	maps := make(map[string]interface{})
@@ -47,9 +49,9 @@ func (e *Empleo) ListarEmpleos(c *fiber.Ctx) error {
 	// 	maps["titulo"] = titulo //[]string{"Adminstrador de empresa", "Desarrollador de software"}
 	// }
 
-	ciudad := c.Query("ciudad")
-	if len(ciudad) > 0 {
-		maps["ciudad"] = ciudad
+	ciudad_id := c.Query("ciudad_id")
+	if len(ciudad_id) > 0 {
+		maps["ciudad_id"] = ciudad_id
 	}
 
 	area := c.Query("area_id")
@@ -79,6 +81,34 @@ func (e *Empleo) ListarEmpleos(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(empleos)
+}
+
+// registra busquedas
+func (e *Empleo) Logs_busquedas(c *fiber.Ctx) error {
+	log := models.LogBusquedas{
+		Titulo:   c.Query("titulo"),
+		CiudadID: ParseInt(c.Query("ciudad_id")),
+		AreaId:   ParseInt(c.Query("area_id")),
+	}
+	go log.Guardar()
+	return c.Next()
+}
+
+func ParseInt(numero string) uint64 {
+	ID, err := strconv.ParseInt(numero, 10, 64)
+	if err != nil {
+		return 0
+	}
+	return uint64(ID)
+}
+
+// Palabras mas buscadas
+func (e *Empleo) EmpleoAutocompletado(c *fiber.Ctx) error {
+	titulo := c.Query("titulo")
+	//fmt.Println(titulo)
+	titulos := models.LogBusquedas{}.Autocompletado(titulo)
+
+	return c.JSON(titulos)
 }
 
 // Publicar Empleo
