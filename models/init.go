@@ -22,4 +22,6 @@ func InitDataBaseTable(config *viper.Viper) {
 	DB.AutoMigrate(&Empresa{})
 	DB.AutoMigrate(&Area{})
 	DB.AutoMigrate(&Subarea{})
+	DB.AutoMigrate(&Provincia{})
+	DB.AutoMigrate(&Ciudad{})
 }

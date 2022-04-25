@@ -26,7 +26,10 @@ type Empleo struct {
 	Jornada                  string    `json:"jornada" gorm:"size:200"`
 	TipoContrato             string    `json:"tipoContrato" gorm:"size:200"`
 	ConocimientosAdicionales string    `json:"conocimientosAdicionales" gorm:"size:200"`
-	Ciudad                   string    `json:"ciudad" gorm:"size:200"`
+	ProvinciaID              uint64    `json:"provinciaid"`
+	Provincia                Provincia `json:"provincia" gorm:"foreignKey:ProvinciaID"`
+	CiudadID                 uint64    `json:"ciudadid"`
+	Ciudad                   Ciudad    `json:"ciudad" gorm:"foreignKey:CiudadID"`
 	PostulanteDiscapacidad   *bool     `json:"postulanteDiscapacidad" gorm:"default:false"` // si el trabajo es para personas con capacidades limitadas.
 	Publicado                time.Time `json:"publicado"`
 	Borrador                 *bool     `json:"borrador" gorm:"default:false"`

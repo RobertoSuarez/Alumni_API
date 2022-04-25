@@ -48,6 +48,8 @@ func main() {
 	config.UseMount("/grupos", api, controllers.NewGrupo())
 	config.UseMount("/empresas", api, controllers.NewEmpresa())
 	config.UseMount("/areas", api, controllers.NewControllerArea())
+	config.UseMount("/provincias", api, controllers.NewControllerProvincia())
+	config.UseMount("/ciudades", api, controllers.NewControllerCiudad())
 
 	logrus.Info("listen to :" + configvar.GetString("port"))
 	app.Listen(":" + configvar.GetString("port"))
