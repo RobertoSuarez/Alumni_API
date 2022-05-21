@@ -22,16 +22,23 @@ func (e *Empleo) ConfigPath(app *fiber.App) *fiber.App {
 	app.Post("/", e.Crear)
 	app.Get("/autocompletado", e.EmpleoAutocompletado)
 
+	// Empleos guardados por el usuario
 	app.Post("/guardados-id", ValidarJWT, e.EmpleosGuardados) // Empleos guardados pero solo retorna un slice de ids
 	app.Get("/guardados", ValidarJWT, e.ObtenerEmpleosGuardados)
 	app.Post("/:id/guardar", ValidarJWT, e.GuardarEmpleoParaUsuario) // el empleo se guardara para el usuario
 	app.Delete("/:id/guardar", ValidarJWT, e.EliminarEmpleoGuardado) // Remover el empleo guardado por el usuario
 
-	// Aplicaciónes de empleos
+	// Aplicaciónes de empleos por el usuario
 	app.Get("/aplicar", ValidarJWT, e.ObtenerEmpleosAplicados)
 	app.Post("/:id/aplicar", ValidarJWT, e.AplicarEmpleo)              // aplica a un empleo, este metodo anteriormente estaba en usuario
 	app.Delete("/:id/aplicar", ValidarJWT, e.EliminarAplicacionEmpleo) // Eliminar aplicación de empleo
 	app.Post("/:id/aplicar/estado", ValidarJWT, e.EstadoAplicacion)    // Revisa el estado de la aplicación de empleo
+
+	// empleos publicados por el usuario
+	app.Get("/publicados", ValidarJWT, e.ObtenerEmpleosPublicados)
+
+	// carmbiar el estado de un empleo
+	app.Put("/:id/estado", ValidarJWT, e.CambiarEstado)
 
 	app.Put("/:id", e.Actualizar)
 	app.Get("/:id", e.ObtenerEmpleoByID)
@@ -52,6 +59,12 @@ func (e *Empleo) ListarEmpleos(c *fiber.Ctx) error {
 	ciudad_id := c.Query("ciudad_id")
 	if len(ciudad_id) > 0 {
 		maps["ciudad_id"] = ciudad_id
+	}
+
+	// condición para buscar por provincia_ids
+	provincia_id := c.Query("provincia_id")
+	if len(provincia_id) > 0 {
+		maps["provincia_id"] = provincia_id
 	}
 
 	area := c.Query("area_id")
@@ -310,4 +323,50 @@ func (Empleo) EstadoAplicacion(c *fiber.Ctx) error {
 	estado.Estado = usuario.EstadoAplicacion(uint64(ID))
 
 	return c.JSON(estado)
+}
+
+// obtener todos los empleos publicado por un usuario
+func (Empleo) ObtenerEmpleosPublicados(c *fiber.Ctx) error {
+
+	claims := c.Locals("claims").(*models.Claim)
+	usuario := models.Usuario{ID: claims.IdUser}
+
+	empleos, err := usuario.ObtenerEmpleosPublicados()
+	if err != nil {
+		return c.Status(400).SendString("Error al consultar: " + err.Error())
+	}
+
+	return c.JSON(empleos)
+}
+
+// Cambiar el estado de un empleo
+func (Empleo) CambiarEstado(c *fiber.Ctx) error {
+
+	estado := struct {
+		Activo bool `json:"activo"`
+	}{
+		Activo: false,
+	}
+
+	// Parseamos el estado que nos envia el cliente
+	err := c.BodyParser(&estado)
+	if err != nil {
+		return c.Status(400).SendString("Error al convertir los datos")
+	}
+
+	// obtenemos el id del empleo
+	ID, err := strconv.ParseInt(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).SendString("Error en el ID")
+	}
+
+	// construimos el objecto para actualizarlo en la base de datos
+	empleo := models.Empleo{ID: uint64(ID), Activo: &estado.Activo}
+
+	emp, err := empleo.CambiarEstado()
+	if err != nil {
+		return c.Status(400).SendString("Error al actualizar: " + err.Error())
+	}
+
+	return c.JSON(emp)
 }

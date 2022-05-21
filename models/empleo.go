@@ -34,6 +34,9 @@ type Empleo struct {
 	Publicado                time.Time `json:"publicado"`
 	Borrador                 *bool     `json:"borrador" gorm:"default:false"`
 	EmpresaID                uint64    `json:"empresaid"`
+	UsuarioID                uint64    `json:"usuario_id"`
+	Usuario                  Usuario   `json:"usuario" gorm:"foreignKey:UsuarioID"`
+	Activo                   *bool     `json:"activo"` // el estado activo representa si, se aceptan aplicaciones al trabajo, o no
 	//Area                     string    `json:"area" gorm:"size:200"`       // Categoria
 }
 
@@ -46,7 +49,11 @@ func (e *Empleo) Crear() error {
 	if e.EmpresaID < 1 {
 		return errors.New("fatal no existe el id de la empresa")
 	}
+
 	e.Publicado = time.Now()
+
+	activo := true
+	e.Activo = &activo
 
 	result := DB.Create(&e)
 	if result.Error != nil {
@@ -105,6 +112,8 @@ func (Empleo) ObtenerTodos(offset int, pageSize int, maps interface{}, title str
 		Where(maps).
 		Preload("Area").
 		Preload("Subarea").
+		Preload("Provincia").
+		Preload("Ciudad").
 		Order("created_at desc").
 		Offset(offset).Limit(pageSize).Find(&empleos)
 	if result.Error != nil {
@@ -125,4 +134,24 @@ func (e *Empleo) ObtenerEmpleoByID() error {
 	e.SubareaID = 0
 
 	return nil
+}
+
+// cambiar el estado de un empleo, que si esta activo o inactivo
+func (e *Empleo) CambiarEstado() (Empleo, error) {
+
+	tx := DB.Begin()
+
+	result := tx.Model(&e).Updates(Empleo{
+		Activo: e.Activo,
+	})
+
+	if result.Error != nil {
+		tx.Rollback()
+		return *e, result.Error
+	}
+
+	tx.First(&e)
+
+	tx.Commit()
+	return *e, nil
 }

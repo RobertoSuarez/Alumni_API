@@ -46,6 +46,7 @@ type Usuario struct {
 	FechaGraduacion      time.Time `json:"fechaGraduacion"`
 	NivelAcademico       string    `json:"nivelAcademico"`
 	EsDiscapacitado      bool      `json:"esDiscapacitado"`
+	Activo               bool      `json:"activo"` // el usuario si esta activo podra ingresar a la plataforma
 	Grupos               []Grupo   `json:"grupos" gorm:"many2many:usuario_grupos;"`
 	Trabajos             []Trabajo `json:"trabajos" gorm:"foreignKey:UsuarioID"`
 	EmpresasPropias      []Empresa `json:"empresasPropias" gorm:"foreignKey:UsuarioCreadorID"`
@@ -110,6 +111,8 @@ func (u Usuario) GetUsuarioByID() (usuario Usuario, err error) {
 // Crear metodo para insertar un usuario en la base de datos
 func (u *Usuario) Crear() error {
 	tx := DB.Begin()
+
+	u.Activo = true
 
 	if err := tx.Create(&u).Error; err != nil {
 		tx.Rollback()
@@ -342,4 +345,23 @@ func (u Usuario) EstadoAplicacion(id_empleo uint64) bool {
 
 	return count == 1
 
+}
+
+// obtener empleos publicados por el usuario.
+func (u Usuario) ObtenerEmpleosPublicados() ([]Empleo, error) {
+
+	// el usuario que ha publicado un trabajo, los trabajo se deben filtrar en base al
+	// id del usuario
+	tx := DB.Begin()
+
+	empleos := []Empleo{}
+
+	result := tx.Where("usuario_id = ?", u.ID).Find(&empleos)
+	if result.Error != nil {
+		tx.Rollback()
+		return empleos, result.Error
+	}
+
+	tx.Commit()
+	return empleos, nil
 }
