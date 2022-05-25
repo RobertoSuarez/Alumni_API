@@ -17,7 +17,7 @@ func GenerarJWT(u models.Usuario) (string, error) {
 	payload := jwt.MapClaims{
 		"email":  u.Email,
 		"id":     u.ID,
-		"exp":    time.Now().Add(time.Hour * 24).Unix(),
+		"exp":    time.Now().Add(time.Hour * 8).Unix(),
 		"grupos": u.Grupos,
 	}
 
@@ -32,12 +32,12 @@ func ValidarJWT(c *fiber.Ctx) error {
 
 	tokenstr := c.Get("Authorization", "")
 	if tokenstr == "" {
-		return c.Status(http.StatusBadRequest).SendString("Para tener acceso se requiere del token")
+		return c.Status(http.StatusUnauthorized).SendString("Para tener acceso se requiere del token")
 	}
 
 	SplitToken := strings.Split(tokenstr, "Bearer")
 	if len(SplitToken) != 2 {
-		return c.Status(http.StatusBadRequest).SendString("Error en el formato del token")
+		return c.Status(http.StatusUnauthorized).SendString("Error en el formato del token")
 	}
 
 	tokenstr = strings.TrimSpace(SplitToken[1])
@@ -47,11 +47,11 @@ func ValidarJWT(c *fiber.Ctx) error {
 		return Miclave, nil
 	})
 	if err != nil {
-		return c.Status(http.StatusBadRequest).SendString("Fallo en el token")
+		return c.Status(http.StatusUnauthorized).SendString("Fallo en el token")
 	}
 
 	if !token.Valid {
-		return c.Status(http.StatusBadRequest).SendString("El token no es validdo")
+		return c.Status(http.StatusUnauthorized).SendString("El token no es validdo")
 	}
 
 	c.Locals("claims", &claims)
@@ -75,6 +75,7 @@ func gruposPermitios(grupos []string) func(*fiber.Ctx) error {
 			}
 		}
 		//fmt.Println("No tienes acceso")
-		return c.Status(400).JSON(models.NewError("no tienes los privilegios requeridos"))
+		// el usuario no tiene siertos privilegios
+		return c.Status(http.StatusForbidden).JSON(models.NewError("no tienes los privilegios requeridos"))
 	}
 }
