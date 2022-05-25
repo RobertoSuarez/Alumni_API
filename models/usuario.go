@@ -52,7 +52,7 @@ type Usuario struct {
 	EmpresasPropias      []Empresa `json:"empresasPropias" gorm:"foreignKey:UsuarioCreadorID"`
 	EmpresasAsociadas    []Empresa `json:"empresaAsociadas" gorm:"many2many:usuario_empresas_asociadas;"`
 	EmpleosGuardados     []Empleo  `json:"empleosGuardados" gorm:"many2many:empleos_guardado"`
-	EmpleosAplicados     []Empleo  `json:"empleosAplicados" gorm:"many2many:empleos_aplicados"`
+	EmpleosAplicados     []Empleo  `json:"empleosAplicados" gorm:"many2many:empleos_aplicados;"`
 }
 
 func (Usuario) TableName() string {
@@ -348,20 +348,25 @@ func (u Usuario) EstadoAplicacion(id_empleo uint64) bool {
 }
 
 // obtener empleos publicados por el usuario.
-func (u Usuario) ObtenerEmpleosPublicados() ([]Empleo, error) {
+func (u Usuario) ObtenerEmpleosPublicados() ([]EmpleoPublicadoAPI, error) {
 
 	// el usuario que ha publicado un trabajo, los trabajo se deben filtrar en base al
 	// id del usuario
-	tx := DB.Begin()
+	empleosPublicados := []EmpleoPublicadoAPI{}
 
-	empleos := []Empleo{}
+	rows, _ := DB.Model(&Empleo{}).Where("usuario_id = ?", u.ID).Rows()
+	defer rows.Close()
 
-	result := tx.Where("usuario_id = ?", u.ID).Find(&empleos)
-	if result.Error != nil {
-		tx.Rollback()
-		return empleos, result.Error
+	for rows.Next() {
+		empleo := EmpleoPublicadoAPI{}
+
+		DB.ScanRows(rows, &empleo.Empleo)
+
+		empleo.Solicitudes = DB.Model(&Empleo{ID: empleo.Empleo.ID}).Association("UsuariosAplicados").Count()
+
+		empleosPublicados = append(empleosPublicados, empleo)
+
 	}
 
-	tx.Commit()
-	return empleos, nil
+	return empleosPublicados, nil
 }

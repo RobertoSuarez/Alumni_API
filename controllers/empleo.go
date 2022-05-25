@@ -64,7 +64,11 @@ func (e *Empleo) ListarEmpleos(c *fiber.Ctx) error {
 	// condición para buscar por provincia_ids
 	provincia_id := c.Query("provincia_id")
 	if len(provincia_id) > 0 {
-		maps["provincia_id"] = provincia_id
+		p_id, _ := strconv.Atoi(provincia_id)
+		// si el id es mayor que 0 entoces, se condiciona con proviencia_id
+		if p_id > 0 {
+			maps["provincia_id"] = provincia_id
+		}
 	}
 
 	area := c.Query("area_id")

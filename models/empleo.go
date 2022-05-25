@@ -36,7 +36,8 @@ type Empleo struct {
 	EmpresaID                uint64    `json:"empresaid"`
 	UsuarioID                uint64    `json:"usuario_id"`
 	Usuario                  Usuario   `json:"usuario" gorm:"foreignKey:UsuarioID"`
-	Activo                   *bool     `json:"activo"` // el estado activo representa si, se aceptan aplicaciones al trabajo, o no
+	Activo                   *bool     `json:"activo"`                                                // el estado activo representa si, se aceptan aplicaciones al trabajo, o no
+	UsuariosAplicados        []Usuario `json:"usuariosAplicados" gorm:"many2many:empleos_aplicados;"` // Usuarios que han aplicado a este trabajo.
 	//Area                     string    `json:"area" gorm:"size:200"`       // Categoria
 }
 
