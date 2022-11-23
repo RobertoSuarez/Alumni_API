@@ -11,3 +11,12 @@ create database alumni_prueba;
 ``` bash
 $ go run main.go
 ```
+# Técnologias utilizadas
+- Go lang
+- GORM
+- Viper
+- Fiber
+
+## Desarrollador
+- Roberto Suárez
+- email: roberto.suarez.job@gmail.com
