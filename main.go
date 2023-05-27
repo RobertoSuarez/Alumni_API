@@ -21,7 +21,7 @@ func init() {
 func main() {
 	configvar := viper.New()
 	configvar.AddConfigPath(".")
-	configvar.SetConfigName("app")
+	configvar.SetConfigName("")
 	configvar.SetConfigType("env")
 
 	configvar.AutomaticEnv()
@@ -51,6 +51,6 @@ func main() {
 	config.UseMount("/provincias", api, controllers.NewControllerProvincia())
 	config.UseMount("/ciudades", api, controllers.NewControllerCiudad())
 
-	logrus.Info("listen to :" + configvar.GetString("port"))
-	app.Listen(":" + configvar.GetString("port"))
+	logrus.Info("listen to :" + configvar.GetString("APP_PORT"))
+	app.Listen(":" + configvar.GetString("APP_PORT"))
 }

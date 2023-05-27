@@ -1,0 +1,41 @@
+version: '3.1'
+services:
+  app: 
+    build:
+      context: ${PWD}
+      dockerfile: Dockerfile
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    environment:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+      - POSTGRES_PORT
+      - POSTGRES_HOST
+      - APP_ATTEMPTS
+      - APP_PORT
+    networks: 
+      - fullstack
+    depends_on:
+      - db
+
+  db: 
+    image: postgres:14.1-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - db-empleos:/var/lib/postgresql/data
+    networks: 
+      - fullstack
+
+volumes:
+  db-empleos:
+
+networks:
+    fullstack:
+        driver: bridge
